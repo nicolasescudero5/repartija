@@ -170,8 +170,9 @@
 
   .alias-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
   .alias-row .avatar{width:26px;height:26px;border-radius:50%;flex:none;display:grid;place-items:center;color:#fff;font-size:.74rem;font-weight:600;}
-  .alias-row .nm{width:80px;flex:none;font-size:.92rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .alias-row input{flex:1;font-size:.92rem;padding:9px 12px;}
+  .alias-row .nm{flex:0 0 auto;max-width:40%;font-size:.92rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:4px;}
+  .alias-row .alias-connector{flex:1;border-bottom:1px dashed var(--line);margin:0 8px;height:1px;align-self:center;}
+  .alias-row input{flex:0 0 50%;font-size:.92rem;padding:9px 12px;min-width:0;}
 
   /* Balances Tab */
   .totals{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px;}
@@ -863,6 +864,11 @@
         </div>
       </div>
     </div>
+    <div class="modal-buttons">
+      <button class="btn btn-soft" id="closeAddExpenseBtn">Cancelar</button>
+      <button class="btn" id="submitAddExpenseBtn">Guardar</button>
+    </div>
+  </div>
 </div>
 
 <!-- Modal: Editar Gasto -->
@@ -1628,6 +1634,10 @@
         return;
       }
       activeGroup = docSnap.data();
+      activeGroup.rules = activeGroup.rules || {};
+      if (activeGroup.rules.allowAllToEdit === undefined) {
+        activeGroup.rules.allowAllToEdit = true;
+      }
       activeGroup.participants = activeGroup.participants || {};
       activeGroup.couples = (activeGroup.couples || []).map(c => {
         if (c && typeof c === 'object' && !Array.isArray(c)) {
@@ -2086,6 +2096,7 @@
         <div class="alias-row">
           <span class="avatar" style="background:${colorFor(p.id)}">${initials(p.name)}</span>
           <span class="nm">${esc(p.name.split(' ')[0])} ${linkButton}</span>
+          <span class="alias-connector"></span>
           <input type="text" class="alias-input" data-pid="${p.id}" value="${esc(val)}" placeholder="alias / CBU / CVU">
         </div>
       `;
@@ -2800,6 +2811,33 @@
     $('addPaymentModal').classList.add('active');
   }
 
+  function openSettlePaymentModal(fromPid, toPid, amount) {
+    if (!activeGroup) return;
+    
+    $('payAmount').value = amount;
+    $('payCurrency').value = activeGroup.currency;
+    $('payCurrency').dispatchEvent(new Event('change'));
+    
+    renderPaymentFormParticipants();
+    
+    const payPayer = $('payPayer');
+    const payReceiver = $('payReceiver');
+    
+    if (Array.from(payPayer.options).some(opt => opt.value === String(fromPid))) {
+      payPayer.value = String(fromPid);
+      
+      const parts = Object.values(activeGroup.participants || {});
+      const allowedCreditors = parts.filter(p => p.id !== String(fromPid));
+      payReceiver.innerHTML = allowedCreditors.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+    }
+    
+    if (Array.from(payReceiver.options).some(opt => opt.value === String(toPid))) {
+      payReceiver.value = String(toPid);
+    }
+    
+    $('addPaymentModal').classList.add('active');
+  }
+
   $('closeAddPaymentBtn').addEventListener('click', () => {
     $('addPaymentModal').classList.remove('active');
   });
@@ -3123,9 +3161,21 @@
             </span>
           </div>
           <span class="sum">${formattedSum}</span>
+          <button class="btn btn-soft action-btn-sm settle-direct-btn" data-from="${m.from[0]}" data-to="${m.to[0]}" data-amount="${(roundedCents / 100).toFixed(2)}" title="Saldar deuda" style="padding: 6px 10px; font-size: 0.75rem; font-weight: 600; flex-shrink: 0; justify-content: center; height: 32px;">Saldar</button>
         </div>
       `;
     }).join('');
+
+    // Wire up direct settle buttons
+    $('settlementList').querySelectorAll('.settle-direct-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const fromPid = btn.getAttribute('data-from');
+        const toPid = btn.getAttribute('data-to');
+        const amount = btn.getAttribute('data-amount');
+        openSettlePaymentModal(fromPid, toPid, amount);
+      });
+    });
   }
 
   function getTransactionDate(e) {
