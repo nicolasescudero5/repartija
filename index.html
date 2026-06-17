@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Repartija">
+<meta name="apple-mobile-web-app-title" content="Repartijas">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#EAF0EC">
+<meta name="theme-color" content="#5C8374">
 <link rel="apple-touch-icon" href="icon-512.png">
 <link rel="icon" type="image/png" href="icon-512.png">
 <link rel="manifest" href="manifest.json">
-<title>Repartija — dividir gastos sin vueltas</title>
+<title>Repartijas — Dividir gastos en grupo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -26,54 +26,100 @@
     --radius:18px; --radius-sm:12px;
   }
   *{box-sizing:border-box;}
-  html{-webkit-text-size-adjust:100%;}
-  body{margin:0;font-family:'Outfit',system-ui,-apple-system,sans-serif;color:var(--ink);
+  body{margin:0;font-family:'Outfit',sans-serif;color:var(--ink);
     background:linear-gradient(165deg,var(--bg) 0%,var(--bg-grad) 100%);background-attachment:fixed;
-    line-height:1.5;-webkit-font-smoothing:antialiased;padding-top:env(safe-area-inset-top);padding-bottom:max(70px,env(safe-area-inset-bottom));padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right));}
-  .wrap{max-width:1140px;margin:0 auto;}
-  header{padding:46px 4px 26px;}
-  .eyebrow{font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--primary);font-weight:600;margin:0 0 10px;}
-  h1{font-family:'Fraunces',serif;font-weight:500;font-size:clamp(2.3rem,6vw,3.2rem);line-height:1.02;margin:0 0 12px;letter-spacing:-.01em;}
+    line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:100px;} /* Extra padding for bottom navigation */
+  .wrap{max-width:1140px;margin:0 auto;padding:20px;}
+  header{padding:20px 4px 15px;display:flex;justify-content:space-between;align-items:center;}
+  .eyebrow{font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--primary);font-weight:600;margin:0 0 5px;}
+  h1{font-family:'Fraunces',serif;font-weight:500;font-size:2.2rem;line-height:1.02;margin:0;letter-spacing:-.01em;}
   h1 em{font-style:italic;color:var(--primary-deep);}
-  .lede{font-size:1.02rem;color:var(--ink-soft);max-width:52ch;margin:0;}
+  
+  /* PWA bottom navbar */
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(251, 252, 251, 0.85);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--line);display:none;justify-content:space-around;padding:12px 10px calc(12px + env(safe-area-inset-bottom));z-index:90;box-shadow:0 -4px 15px rgba(47,59,54,.05);}
+  .bottom-nav.visible{display:flex;}
+  .nav-item{background:none;border:none;flex-direction:column;align-items:center;color:var(--muted);font-weight:600;font-size:.75rem;cursor:pointer;gap:4px;transition:color .15s ease;display:flex;justify-content:center;}
+  .nav-item svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2.2;transition:transform .12s;}
+  .nav-item.active{color:var(--primary);}
+  .nav-item:active svg{transform:scale(0.9);}
+  .nav-item-center{position:relative;top:-6px;background:var(--primary);color:#fff !important;width:48px;height:48px;border-radius:50%;box-shadow:0 4px 10px rgba(92,131,116,.35);justify-content:center;align-items:center;}
+  .nav-item-center svg{width:24px;height:24px;stroke:#fff;}
+  .nav-item-center:hover{background:var(--primary-deep);}
 
-  /* ---- Layout dos columnas (responsive) ---- */
-  .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start;}
-  .col{min-width:0;}
-  @media (max-width:880px){ .grid{grid-template-columns:1fr;} }
-  @media (min-width:881px){ .col-results{position:sticky;top:20px;} }
+  /* Views and SPA structure */
+  .view{display:none;}
+  .view.active{display:block;}
 
+  /* Cards */
   .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-soft);padding:24px 22px;margin-bottom:20px;}
-  .col .card:last-child{margin-bottom:0;}
   .card-head{display:flex;align-items:baseline;gap:12px;margin-bottom:18px;}
   .step{font-family:'Fraunces',serif;font-style:italic;font-size:1.15rem;color:var(--primary);width:30px;flex:none;}
   .card-head h2{font-family:'Fraunces',serif;font-weight:500;font-size:1.35rem;margin:0;letter-spacing:-.01em;}
   .card-head .sub{font-size:.85rem;color:var(--muted);margin:2px 0 0;}
+
+  /* Forms and Inputs */
   label{display:block;font-size:.82rem;font-weight:500;color:var(--ink-soft);margin:0 0 6px;}
-  input[type=text],input[type=number],select{width:100%;font-family:inherit;font-size:1rem;color:var(--ink);
+  input[type=text],input[type=number],input[type=email],input[type=password],select{width:100%;font-family:inherit;font-size:1rem;color:var(--ink);
     background:var(--surface-2);border:1.5px solid var(--line);border-radius:var(--radius-sm);padding:12px 14px;
-    transition:border-color .15s ease, background .15s ease, box-shadow .15s ease;}
-  input::placeholder{color:#A9B5AE;}
+    transition:all .15s ease;}
   input:focus,select:focus{outline:none;border-color:var(--primary);background:#fff;box-shadow:0 0 0 3px var(--primary-tint);}
-  select{appearance:none;-webkit-appearance:none;cursor:pointer;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235C8374' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-    background-repeat:no-repeat;background-position:right 14px center;padding-right:38px;}
   .row{display:flex;gap:10px;} .row .grow{flex:1;min-width:0;}
-  button{font-family:inherit;cursor:pointer;border:none;}
+  
+  /* Buttons */
+  button{font-family:inherit;cursor:pointer;border:none;display:inline-flex;align-items:center;}
   .btn{background:var(--primary);color:#fff;font-size:.95rem;font-weight:600;border-radius:var(--radius-sm);
-    padding:12px 18px;transition:background .15s ease, transform .06s ease;white-space:nowrap;}
+    padding:12px 18px;transition:background .15s ease, transform .06s ease;white-space:nowrap;justify-content:center;}
   .btn:hover{background:var(--primary-deep);} .btn:active{transform:translateY(1px);}
-  .btn-block{width:100%;justify-content:center;} .btn:disabled{background:#B6C5BC;cursor:not-allowed;}
+  .btn-block{width:100%;justify-content:center;}
+  .btn:disabled{background:#B6C5BC;cursor:not-allowed;}
   .btn-soft{background:var(--primary-tint);color:var(--primary-deep);} .btn-soft:hover{background:var(--primary-soft);}
+  .btn-danger{background:var(--owe-soft);color:var(--owe);} .btn-danger:hover{background:#ecd0c7;}
+  .action-btn-sm{padding:6px 10px;font-size:.8rem;border-radius:6px;font-weight:600;}
+
+  /* Grid Layouts */
+  .grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,0.8fr);gap:20px;align-items:start;}
+  @media (max-width:880px){ .grid{grid-template-columns:1fr;} }
+
+  /* Logo */
+  .logo-container{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:20px;}
+  .logo-r{width:80px;height:80px;background:linear-gradient(135deg, var(--primary) 0%, var(--primary-deep) 100%);color:#fff;font-family:'Fraunces', serif;font-weight:600;font-size:3.5rem;display:grid;place-items:center;border-radius:22px;box-shadow:0 8px 20px rgba(92,131,116,.25);text-shadow:1px 2px 4px rgba(47,59,54,.2);}
+
+  /* Login Styles */
+  .login-card{max-width:420px;margin:50px auto;text-align:center;}
+  .login-card h2{font-family:'Fraunces',serif;font-size:2rem;margin-bottom:8px;}
+  .sso-buttons{display:flex;flex-direction:column;gap:10px;margin:24px 0;}
+  .sso-btn{background:#fff;border:1px solid var(--line);border-radius:var(--radius-sm);padding:12px;font-weight:600;color:var(--ink-soft);justify-content:center;gap:10px;transition:all .12s;}
+  .sso-btn:hover{background:var(--surface-2);color:var(--ink);}
+  .sso-btn img{width:18px;height:18px;}
+  .divider{display:flex;align-items:center;color:var(--muted);font-size:.8rem;margin:20px 0;}
+  .divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line);margin:0 10px;}
+  .manual-form{display:grid;gap:12px;text-align:left;}
+
+  /* Groups view styles */
+  .groups-list{display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:15px;margin-top:20px;}
+  .group-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow-soft);cursor:pointer;transition:transform .12s, border-color .12s;}
+  .group-card:hover{transform:translateY(-2px);border-color:var(--primary);}
+  .group-card h3{margin:0 0 6px;font-family:'Fraunces',serif;font-size:1.2rem;}
+  .group-card .meta{font-size:.82rem;color:var(--muted);display:flex;justify-content:space-between;}
+
+  /* Profile View */
+  .profile-card{max-width:500px;margin:40px auto;text-align:center;}
+  .profile-avatar{width:90px;height:90px;border-radius:50%;margin:0 auto 15px;background:var(--primary-soft);display:grid;place-items:center;font-size:2.5rem;font-weight:600;color:var(--primary-deep);border:3px solid var(--line);object-fit:cover;}
+  .premium-tag{display:inline-flex;align-items:center;gap:6px;background:#f5e5c9;color:#b07c2a;font-size:.78rem;font-weight:700;padding:4px 10px;border-radius:999px;margin-top:5px;letter-spacing:.03em;text-transform:uppercase;}
+  .premium-tag svg{fill:currentColor;width:12px;height:12px;}
+
+  /* Group details layout */
+  .group-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
+  .group-actions{display:flex;gap:10px;}
+  .tab-nav{display:flex;gap:8px;border-bottom:1.5px solid var(--line);margin-bottom:20px;padding-bottom:1px;}
+  .tab-btn{background:none;border:none;padding:8px 16px;font-size:.95rem;font-weight:600;color:var(--muted);border-bottom:2.5px solid transparent;border-radius:0;cursor:pointer;}
+  .tab-btn.active{color:var(--primary-deep);border-bottom-color:var(--primary);}
+  .tab-content{display:none;}
+  .tab-content.active{display:block;}
+
+  /* Expenses Tab */
   .fields{display:grid;gap:14px;margin-bottom:16px;}
   .fields-2{grid-template-columns:1fr 1fr;}
-  @media(max-width:520px){.fields-2{grid-template-columns:1fr;}}
-  .chips{display:flex;flex-wrap:wrap;gap:9px;margin-top:16px;}
-  .chip{display:inline-flex;align-items:center;gap:8px;background:var(--primary-tint);border:1px solid var(--primary-soft);
-    color:var(--primary-deep);border-radius:999px;padding:7px 8px 7px 14px;font-size:.92rem;font-weight:500;}
-  .chip .avatar{width:22px;height:22px;border-radius:50%;flex:none;display:grid;place-items:center;color:#fff;font-size:.7rem;font-weight:600;}
-  .chip button{background:transparent;color:var(--primary);width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:1rem;line-height:1;transition:background .12s,color .12s;}
-  .chip button:hover{background:var(--owe-soft);color:var(--owe);}
   .split-box{background:var(--surface-2);border:1.5px solid var(--line);border-radius:var(--radius-sm);padding:12px;}
   .split-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
   .split-head .t{font-size:.82rem;font-weight:500;color:var(--ink-soft);}
@@ -87,39 +133,51 @@
   .pchk input:checked + .dot{background:var(--primary);border-color:var(--primary);}
   .pchk input:checked + .dot::after{content:"";width:6px;height:6px;border-radius:50%;background:#fff;}
   .pchk:has(input:checked){background:var(--primary-tint);border-color:var(--primary-soft);color:var(--primary-deep);}
-  .exp-list{display:flex;flex-direction:column;gap:10px;margin-top:4px;}
-  .exp{display:flex;align-items:center;gap:14px;padding:14px 6px 14px 16px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface-2);}
+  
+  .exp-list{display:flex;flex-direction:column;gap:10px;margin-top:12px;}
+  .exp{display:flex;align-items:center;gap:14px;padding:14px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface-2);}
   .exp .body{flex:1;min-width:0;} .exp .desc{font-weight:500;font-size:.97rem;}
   .exp .meta{font-size:.82rem;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .exp .meta b{color:var(--primary-deep);font-weight:600;}
-  .exp .amt{font-weight:600;font-size:1.02rem;white-space:nowrap;font-variant-numeric:tabular-nums;}
+  .exp .amt{font-weight:600;font-size:1.02rem;white-space:nowrap;}
+  .exp .currency-badge{font-size:.73rem;background:var(--primary-soft);color:var(--primary-deep);padding:2px 6px;border-radius:4px;margin-left:5px;font-weight:600;}
   .exp .del{background:transparent;color:var(--muted);width:32px;height:32px;flex:none;border-radius:8px;display:grid;place-items:center;transition:all .12s ease;}
   .exp .del:hover{background:var(--owe-soft);color:var(--owe);}
-  .empty{text-align:center;color:var(--muted);font-size:.92rem;padding:22px 10px;border:1.5px dashed var(--line);border-radius:var(--radius-sm);background:var(--surface-2);}
+  
+  .empty{text-align:center;color:var(--muted);font-size:.92rem;padding:22px 10px;border:1.5px dashed var(--line);border-radius:var(--radius-sm);background:var(--surface-2);width:100%;}
+  .load-more-btn{display:block;margin:15px auto 0;background:none;border:none;color:var(--primary);font-weight:600;cursor:pointer;}
+
+  /* Members Tab */
   .subhead{font-size:.82rem;letter-spacing:.04em;font-weight:600;color:var(--ink-soft);margin:22px 0 10px;display:flex;align-items:center;gap:8px;}
   .subhead:first-child{margin-top:0;}
   .subhead .ico{color:var(--primary);display:grid;place-items:center;}
   .hint{font-size:.82rem;color:var(--muted);margin:8px 0 0;}
-  /* Alias */
+  .pair-list, .rule-list{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:12px;}
+  .pair{display:inline-flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:6px 8px 6px 14px;font-size:.9rem;font-weight:500;}
+  .pair .x, .rule .x{background:transparent;color:var(--muted);width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:1rem;line-height:1;transition:all .12s;}
+  .pair .x:hover, .rule .x:hover{background:var(--owe-soft);color:var(--owe);}
+  .rule{display:inline-flex;align-items:center;gap:8px;background:var(--primary-tint);border:1px solid var(--primary-soft);color:var(--primary-deep);border-radius:999px;padding:6px 8px 6px 14px;font-size:.9rem;font-weight:500;}
+  .rule .arrow{opacity:.6;}
+  .addrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:15px;}
+  .addrow select{flex:1;min-width:110px;} .addrow .lbl{font-size:.85rem;color:var(--muted);flex:none;}
+
+  .chips{display:flex;flex-wrap:wrap;gap:9px;margin-top:10px;margin-bottom:15px;}
+  .chip{display:inline-flex;align-items:center;gap:8px;background:var(--primary-tint);border:1px solid var(--primary-soft);
+    color:var(--primary-deep);border-radius:999px;padding:7px 8px 7px 14px;font-size:.92rem;font-weight:500;}
+  .chip .avatar{width:22px;height:22px;border-radius:50%;flex:none;display:grid;place-items:center;color:#fff;font-size:.7rem;font-weight:600;}
+  .chip button{background:transparent;color:var(--primary);width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:1rem;line-height:1;transition:all .12s,color .12s;}
+  .chip button:hover{background:var(--owe-soft);color:var(--owe);}
+
   .alias-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
   .alias-row .avatar{width:26px;height:26px;border-radius:50%;flex:none;display:grid;place-items:center;color:#fff;font-size:.74rem;font-weight:600;}
   .alias-row .nm{width:80px;flex:none;font-size:.92rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .alias-row input{flex:1;font-size:.92rem;padding:9px 12px;}
-  /* Parejas / reglas */
-  .pair-list,.rule-list{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:12px;}
-  .pair{display:inline-flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:6px 8px 6px 14px;font-size:.9rem;font-weight:500;}
-  .pair .x,.rule .x{background:transparent;color:var(--muted);width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:1rem;line-height:1;transition:all .12s;}
-  .pair .x:hover,.rule .x:hover{background:var(--owe-soft);color:var(--owe);}
-  .rule{display:inline-flex;align-items:center;gap:8px;background:var(--primary-tint);border:1px solid var(--primary-soft);color:var(--primary-deep);border-radius:999px;padding:6px 8px 6px 14px;font-size:.9rem;font-weight:500;}
-  .rule .arrow{opacity:.6;}
-  .addrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
-  .addrow select{flex:1;min-width:110px;} .addrow .lbl{font-size:.85rem;color:var(--muted);flex:none;}
-  /* Resultados */
-  #resultsCard{display:none;}
+
+  /* Balances Tab */
   .totals{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px;}
   .stat{background:var(--primary-tint);border:1px solid var(--primary-soft);border-radius:var(--radius-sm);padding:16px 18px;}
   .stat .k{font-size:.78rem;color:var(--primary-deep);font-weight:500;}
-  .stat .v{font-family:'Fraunces',serif;font-size:1.55rem;font-weight:500;margin-top:3px;font-variant-numeric:tabular-nums;}
+  .stat .v{font-family:'Fraunces',serif;font-size:1.55rem;font-weight:500;margin-top:3px;}
   .section-label{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:0 0 14px;}
   .bal{margin-bottom:14px;}
   .bal-row{display:flex;align-items:center;gap:12px;margin-bottom:9px;}
@@ -142,371 +200,3381 @@
   .settled-note{text-align:center;padding:26px 16px;color:var(--primary-deep);background:var(--primary-tint);border:1px solid var(--primary-soft);border-radius:var(--radius-sm);font-weight:500;}
   .settled-note .big{font-family:'Fraunces',serif;font-size:1.3rem;display:block;margin-bottom:4px;}
   .moves-note{font-size:.86rem;color:var(--muted);text-align:center;margin:2px 0 18px;}
-  .reset{display:block;margin:14px auto 0;background:transparent;color:var(--muted);font-size:.85rem;padding:8px 14px;border-radius:8px;}
-  .reset:hover{color:var(--owe);background:var(--owe-soft);}
-  .foot{text-align:center;color:var(--muted);font-size:.8rem;margin-top:26px;}
-  @media (prefers-reduced-motion: reduce){*{transition:none !important;}}
+
+  /* Admin View Styles */
+  .admin-table-container{overflow-x:auto;margin-top:10px;}
+  table{width:100%;border-collapse:collapse;text-align:left;font-size:.9rem;}
+  th,td{padding:12px;border-bottom:1px solid var(--line);}
+  th{font-weight:600;color:var(--ink-soft);background:var(--surface-2);}
+
+  /* Modals */
+  .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(47,59,54,.4);display:none;align-items:center;justify-content:center;padding:20px;z-index:100;backdrop-filter:blur(3px);}
+  .modal-overlay.active{display:flex;}
+  .modal{background:#fff;border-radius:var(--radius);max-width:480px;width:100%;padding:24px;box-shadow:0 10px 25px rgba(0,0,0,.15);border:1px solid var(--line);}
+  .modal h3{font-family:'Fraunces',serif;font-size:1.4rem;margin:0 0 10px;}
+  .modal-buttons{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;}
+
+  .back-btn{background:none;border:none;cursor:pointer;color:var(--primary);font-weight:600;display:inline-flex;align-items:center;gap:6px;font-size:.95rem;padding:0;margin-bottom:15px;}
+  .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--ink);color:#fff;padding:12px 24px;border-radius:999px;font-size:.9rem;font-weight:500;box-shadow:0 4px 12px rgba(0,0,0,.15);transition:opacity .2s ease, transform .2s ease;z-index:200;opacity:0;pointer-events:none;}
+  .toast.active{transform:translateX(-50%) translateY(0);opacity:1;pointer-events:auto;}
+
+  .group-actions-top {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+    align-items: center;
+    justify-content: flex-end;
+  }
+  .action-icon-btn {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+    padding: 8px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .action-icon-btn:hover {
+    background: var(--surface-2);
+    color: var(--primary);
+    border-color: var(--primary-soft);
+  }
+  .action-icon-btn.btn-danger-icon:hover {
+    background: var(--owe-soft);
+    color: var(--owe);
+    border-color: var(--owe-soft);
+  }
+  /* Spinner for loading state */
+  .loading-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2.2px solid currentColor;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: loading-spinner-spin 0.6s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  @keyframes loading-spinner-spin {
+    to { transform: rotate(360deg); }
+  }
+  .btn-loading {
+    opacity: 0.8;
+    pointer-events: none;
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <p class="eyebrow">Cuentas claras</p>
-    <h1>Repartija<em>.</em></h1>
-    <p class="lede">Cargá quién puso plata y la app calcula la forma más simple de saldar todo, con la menor cantidad de transferencias.</p>
+  <header style="display: flex; align-items: center; gap: 12px; padding: 30px 4px 20px;">
+    <img src="icon-512.png" alt="Logo" style="width: 50px; height: 50px; border-radius: 12px; box-shadow: var(--shadow-soft);">
+    <div>
+      <p class="eyebrow" style="margin: 0 0 2px;">Repartijas v2.2</p>
+      <h1 style="font-size: 2rem; margin: 0;">Repartijas<em>.</em></h1>
+    </div>
   </header>
 
-  <div class="grid">
-    <!-- Columna de carga -->
-    <div class="col col-setup">
-      <section class="card">
-        <div class="card-head"><span class="step">i</span><div><h2>¿Quiénes participan?</h2><p class="sub">Agregá a todos los que entran en la repartija.</p></div></div>
-        <div class="row"><div class="grow"><input type="text" id="nameInput" placeholder="Nombre (ej. Sofía)" maxlength="24" autocomplete="off"></div><button class="btn" id="addPersonBtn">Agregar</button></div>
-        <div class="chips" id="chips"></div>
+  <!-- VISTA 1: LOGIN -->
+  <main id="loginView" class="view">
+    <div class="card login-card">
+      <div class="logo-container">
+        <img src="icon-512.png" alt="Repartijas" class="logo-r" style="border-radius: 22px; box-shadow: 0 8px 20px rgba(92,131,116,.25); object-fit: cover;">
+        <h2 style="margin:5px 0 0;">Repartijas</h2>
+      </div>
+      <p class="sub" style="color:var(--muted); font-size:.9rem;">Dividir gastos grupales sin vueltas.</p>
+      
+      <div class="sso-buttons">
+        <button class="sso-btn" id="googleLoginBtn">
+          <img src="https://lh3.googleusercontent.com/COxitqgJr1sICZnhOKCwKhCeaUCeRUXV9RwwbJLL3tD0bcDT1A9o1oJH1XfEQtyj8w" alt="Google">
+          Ingresar con Google
+        </button>
+        <button class="sso-btn" onclick="toast('Inicio de sesión de Microsoft próximamente disponible')">
+          Microsoft Account
+        </button>
+        <button class="sso-btn" onclick="toast('Inicio de sesión de Apple próximamente disponible')">
+          Apple Sign-In
+        </button>
+      </div>
 
-        <div class="subhead" style="margin-top:24px;"><span class="ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></span>Alias para transferir</div>
-        <div id="aliasPanel"></div>
-      </section>
+      <div class="divider">o ingresá manualmente</div>
 
-      <section class="card">
-        <div class="card-head"><span class="step">ii</span><div><h2>¿Qué se gastó?</h2><p class="sub">Quién pagó cada cosa y entre quiénes se reparte.</p></div></div>
-        <div id="expenseForm">
-          <div class="fields">
-            <div><label for="expDesc">Concepto</label><input type="text" id="expDesc" placeholder="ej. Asado, nafta, Airbnb…" maxlength="40" autocomplete="off"></div>
-            <div class="fields fields-2" style="margin:0;">
-              <div><label for="expAmount">Monto</label><input type="number" id="expAmount" placeholder="0" min="0" step="0.01" inputmode="decimal"></div>
-              <div><label for="expPayer">Lo pagó</label><select id="expPayer"></select></div>
+      <div class="manual-form">
+        <div>
+          <label for="emailInput">Correo Electrónico</label>
+          <input type="email" id="emailInput" placeholder="ejemplo@correo.com">
+        </div>
+        <div>
+          <label for="passwordInput">Contraseña</label>
+          <input type="password" id="passwordInput" placeholder="Contraseña">
+        </div>
+        <div style="display:flex; gap:10px; margin-top:8px;">
+          <button class="btn grow" id="signInEmailBtn">Entrar</button>
+          <button class="btn btn-soft grow" id="signUpEmailBtn">Registrarse</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- VISTA 2: LISTA DE GRUPOS -->
+  <main id="groupsView" class="view">
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <div>
+          <h2 style="margin:0;">Mis Grupos</h2>
+          <p class="sub" style="margin:2px 0 0;">Tus viajes, juntadas y cuentas compartidas.</p>
+        </div>
+        <button class="btn" id="btnShowCreateGroupModal">Crear Grupo</button>
+      </div>
+      
+      <div class="groups-list" id="groupsList">
+        <p class="empty">Cargando grupos...</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- VISTA 3: DETALLE DEL GRUPO -->
+  <main id="groupDetailsView" class="view">
+    <div class="group-actions-top">
+      <button class="action-icon-btn" id="shareGroupBtn" title="Compartir">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+      </button>
+      <button class="action-icon-btn" id="editGroupBtn" title="Editar" style="display:none;">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"/></svg>
+      </button>
+      <button class="action-icon-btn btn-danger-icon" id="deleteGroupBtn" title="Eliminar" style="display:none;">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m5 0V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2"/></svg>
+      </button>
+    </div>
+    
+    <div class="group-header" style="margin-bottom:15px;">
+      <div>
+        <h2 id="groupNameText" style="font-family:'Fraunces',serif; font-size:1.80rem; margin:0;">Cargando...</h2>
+        <p class="sub" style="margin:2px 0 0; color:var(--muted); font-size:.85rem;" id="groupCodeText">Código: -</p>
+      </div>
+    </div>
+
+    <nav class="tab-nav">
+      <button class="tab-btn active" data-tab="expensesTab">Gastos</button>
+      <button class="tab-btn" data-tab="paymentsTab">Pagos</button>
+      <button class="tab-btn" data-tab="membersTab">Participantes</button>
+      <button class="tab-btn" data-tab="balancesTab">Liquidación</button>
+      <button class="tab-btn" data-tab="reportsTab">Reportes</button>
+    </nav>
+
+    <!-- Tab 1: Gastos -->
+    <div id="expensesTab" class="tab-content active">
+      <div class="grid" style="grid-template-columns: 1fr;">
+        <div class="col">
+          <section class="card">
+            <div class="card-head"><span class="step">✓</span><div><h2>Historial de Gastos</h2><p class="sub">Todos los gastos del grupo.</p></div></div>
+            <div class="exp-list" id="expList">
+              <p class="empty">No hay gastos en este grupo.</p>
             </div>
-            <div><label>Se divide entre</label>
-              <div class="split-box">
-                <div class="split-head"><span class="t" id="splitCount">Todos</span><button type="button" id="toggleAllBtn">Ninguno</button></div>
-                <div class="split-grid" id="splitGrid"></div>
-              </div>
+            <button class="load-more-btn" id="loadMoreExpensesBtn" style="display:none;">Cargar más gastos</button>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 1.5: Pagos -->
+    <div id="paymentsTab" class="tab-content">
+      <div class="grid" style="grid-template-columns: 1fr;">
+        <div class="col">
+          <section class="card">
+            <div class="card-head"><span class="step">✓</span><div><h2>Historial de Pagos</h2><p class="sub">Pagos y transferencias registradas.</p></div></div>
+            <div class="exp-list" id="paymentsList">
+              <p class="empty">No hay pagos registrados en este grupo.</p>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2: Participantes -->
+    <div id="membersTab" class="tab-content">
+      <!-- Admin Config Card (only visible to owner/admin) -->
+      <section class="card" id="adminConfigCard" style="display:none; margin-bottom: 20px;">
+        <div class="card-head">
+          <span class="step">⚙</span>
+          <div>
+            <h2>Configuración del Grupo</h2>
+            <p class="sub">Permisos y redondeo de liquidación.</p>
+          </div>
+        </div>
+        <div style="display:grid; gap:15px;">
+          <label class="pchk" style="padding: 10px 16px; width: 100%; margin-bottom: 5px;">
+            <input type="checkbox" id="allowAllToEditCheckbox">
+            <span class="dot"></span>
+            Permitir que cualquiera cargue gastos/pagos en nombre de otros
+          </label>
+          <div class="fields fields-2" style="margin-bottom: 0;">
+            <div>
+              <label for="roundValueSelect">Redondeo de transferencias</label>
+              <select id="roundValueSelect">
+                <option value="1">Exacto (con centavos)</option>
+                <option value="10">Al peso / A los $10</option>
+                <option value="100">A los $100</option>
+                <option value="1000">A los $1.000</option>
+              </select>
+            </div>
+            <div>
+              <label for="roundDirectionSelect">Dirección del redondeo</label>
+              <select id="roundDirectionSelect">
+                <option value="nearest">Normal (al más cercano)</option>
+                <option value="up">Hacia arriba (ceil)</option>
+                <option value="down">Hacia abajo (floor)</option>
+              </select>
             </div>
           </div>
-          <button class="btn btn-block" id="addExpenseBtn">Sumar gasto</button>
         </div>
-        <div class="exp-list" id="expList" style="margin-top:18px;"></div>
       </section>
 
+      <div class="grid">
+        <div class="col">
+          <section class="card">
+            <div class="card-head"><span class="step">i</span><div><h2>Participantes</h2><p class="sub">Personas locales en este grupo.</p></div></div>
+            <div class="row">
+              <input type="text" id="personNameInput" placeholder="Nombre (ej. Sofi)" maxlength="24">
+              <button class="btn" id="addPersonBtn">Agregar</button>
+            </div>
+            <div class="chips" id="chips"></div>
+
+            <div class="subhead"><span class="ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></span>Alias/CBU para cobrar</div>
+            <div id="aliasPanel"></div>
+          </section>
+        </div>
+
+        <div class="col">
+          <section class="card">
+            <div class="card-head"><span class="step">ii</span><div><h2>Parejas y Reglas</h2><p class="sub">Parejas y reglas puntuales.</p></div></div>
+            
+            <div class="subhead"><span class="ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>Parejas (pagan juntas)</div>
+            <div class="pair-list" id="pairList"></div>
+            <div class="addrow">
+              <select id="pairA"></select>
+              <span class="lbl">y</span>
+              <select id="pairB"></select>
+              <button class="btn btn-soft" id="addPairBtn">Unir</button>
+            </div>
+            
+            <div class="subhead" style="margin-top:20px;"><span class="ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>Reglas: quién le paga a quién</div>
+            <div class="rule-list" id="ruleList"></div>
+            <div class="addrow">
+              <select id="ruleP"></select>
+              <span class="lbl">le paga a</span>
+              <select id="ruleT"></select>
+              <button class="btn btn-soft" id="addRuleBtn">Agregar</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: Saldos y Liquidación -->
+    <div id="balancesTab" class="tab-content">
       <section class="card">
-        <div class="card-head"><span class="step">iii</span><div><h2>Grupos y reglas</h2><p class="sub">Parejas que pagan juntas y quién le paga a quién.</p></div></div>
-
-        <div class="subhead"><span class="ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>Parejas (pagan como una sola)</div>
-        <div class="pair-list" id="pairList"></div>
-        <div class="addrow"><select id="pairA"></select><span class="lbl">y</span><select id="pairB"></select><button class="btn btn-soft" id="addPairBtn">Unir</button></div>
-        <p class="hint">Una pareja no se debe nada entre sí: pagan o cobran como una sola billetera.</p>
-
-        <div class="subhead" style="margin-top:24px;"><span class="ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>Reglas de pago</div>
-        <div class="rule-list" id="ruleList"></div>
-        <div class="addrow"><select id="ruleP"></select><span class="lbl">le paga a</span><select id="ruleT"></select><button class="btn btn-soft" id="addRuleBtn">Agregar</button></div>
-        <p class="hint">Quien no tenga regla, le puede pagar a cualquiera (lo que dé menos transferencias).</p>
-
-        <div class="subhead" style="margin-top:24px;"><span class="ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>Redondeo de las transferencias</div>
-        <select id="roundSel" style="max-width:240px;">
-          <option value="100">Al peso ($1)</option>
-          <option value="10000">A los $100</option>
-          <option value="100000">A los $1.000</option>
-          <option value="1">Exacto (con centavos)</option>
-        </select>
-      </section>
-    </div>
-
-    <!-- Columna de resultados -->
-    <div class="col col-results">
-      <section class="card" id="resultsCard">
-        <div class="card-head"><span class="step">✓</span><div><h2>Cómo saldar</h2><p class="sub">El camino más corto para quedar a mano.</p></div></div>
+        <div class="card-head"><span class="step">✓</span><div><h2>Cálculo de Saldos</h2><p class="sub" id="settlementCurrencyText">Liquidar saldos en ARS</p></div></div>
+        
         <div class="totals" id="totals"></div>
-        <p class="section-label">Balance de cada uno</p>
-        <div class="bal" id="balances"></div>
+        
+        <p class="section-label">Balance consolidado</p>
+        <div class="bal" id="balancesList"></div>
+
         <div class="settle">
-          <p class="section-label">Transferencias a hacer</p>
+          <p class="section-label">Transferencias sugeridas</p>
           <p class="moves-note" id="movesNote"></p>
-          <div id="settlement"></div>
+          <div id="settlementList"></div>
         </div>
-        <button class="reset" id="resetBtn">Borrar todo y empezar de cero</button>
       </section>
     </div>
-  </div>
 
-  <p class="foot">Se guarda solo en este navegador. Nada se sube a ningún lado.</p>
+    <!-- Tab 4: Reportes -->
+    <div id="reportsTab" class="tab-content">
+      <section class="card">
+        <div class="card-head"><span class="step">📋</span><div><h2>Reportes y Análisis</h2><p class="sub">Estadísticas, flujos y resumen para compartir.</p></div></div>
+        
+        <!-- Date filters -->
+        <div class="fields fields-2" style="margin-bottom: 20px;">
+          <div>
+            <label for="reportDateFrom">Desde</label>
+            <input type="date" id="reportDateFrom">
+          </div>
+          <div>
+            <label for="reportDateTo">Hasta</label>
+            <input type="date" id="reportDateTo">
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px; margin-bottom: 25px;">
+          <button class="btn btn-soft" id="applyReportFiltersBtn" style="flex: 1; justify-content: center;">Filtrar</button>
+          <button class="btn btn-outline" id="clearReportFiltersBtn" style="flex: 1; justify-content: center;">Limpiar Filtros</button>
+        </div>
+
+        <!-- Summary by category -->
+        <div class="subhead" style="margin-top: 20px;">
+          <span class="ico">📊</span>Gastos por Categoría
+        </div>
+        <div id="reportCategorySummary" style="display: grid; gap: 10px; margin-bottom: 25px;">
+          <!-- Dynamic content -->
+        </div>
+
+        <!-- Participant Flow Table -->
+        <div class="subhead" style="margin-top: 20px;">
+          <span class="ico">👥</span>Flujo por Participante
+        </div>
+        <div class="admin-table-container" style="margin-bottom: 25px;">
+          <table style="width: 100%;">
+            <thead>
+              <tr>
+                <th style="text-align: left;">Persona</th>
+                <th style="text-align: right;">Aportado (Gastos)</th>
+                <th style="text-align: right;">Pagado (Pagos)</th>
+                <th style="text-align: right;">Recibido (Cobros)</th>
+                <th style="text-align: right;">Flujo Neto</th>
+              </tr>
+            </thead>
+            <tbody id="reportParticipantFlowList">
+              <!-- Dynamic content -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Plain Text settlement summary to share on WhatsApp -->
+        <div class="subhead" style="margin-top: 20px;">
+          <span class="ico">💬</span>Resumen de Liquidación (WhatsApp)
+        </div>
+        <textarea id="reportSettlementClipboardText" readonly style="width: 100%; height: 180px; font-family: monospace; font-size: 0.85rem; padding: 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg-card); color: var(--text); resize: none; margin-bottom: 10px;"></textarea>
+        <button class="btn" id="copyReportToClipboardBtn" style="width: 100%; justify-content: center;">Copiar al Portapapeles</button>
+
+        <!-- Detailed Transaction Log Table -->
+        <div class="subhead" style="margin-top: 30px;">
+          <span class="ico">⏳</span>Log de Transacciones (Gastos y Pagos)
+        </div>
+        <div class="admin-table-container">
+          <table style="width: 100%;">
+            <thead>
+              <tr>
+                <th style="text-align: left;">Fecha</th>
+                <th style="text-align: left;">Tipo</th>
+                <th style="text-align: left;">Concepto / Categoría</th>
+                <th style="text-align: left;">Quién</th>
+                <th style="text-align: left;">Para Quiénes</th>
+                <th style="text-align: right;">Monto</th>
+              </tr>
+            </thead>
+            <tbody id="reportTransactionsLogList">
+              <!-- Dynamic content -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- VISTA 4: PERFIL DEL USUARIO -->
+  <main id="profileView" class="view">
+    <div class="card profile-card">
+      <div id="profileAvatar" class="profile-avatar">U</div>
+      <h2 id="profileNameText" style="font-family:'Fraunces',serif; margin:10px 0 2px;">Cargando...</h2>
+      <p id="profileEmailText" style="color:var(--muted); margin:0 0 10px; font-size:.9rem;"></p>
+      
+      <div id="premiumStatusContainer"></div>
+      
+      <div style="margin-top:20px; border-top:1px solid var(--line); padding-top:20px; text-align:left; display:grid; gap:12px;">
+        <div>
+          <label for="profileNicknameInput">Mi Apodo / Nombre corto</label>
+          <input type="text" id="profileNicknameInput" placeholder="ej. Nico" maxlength="20">
+          <p class="hint">Es el nombre que verán los demás en los grupos.</p>
+        </div>
+        <div>
+          <label for="profileDefaultAliasInput">Mi Alias / CBU / CVU por defecto</label>
+          <input type="text" id="profileDefaultAliasInput" placeholder="Ingresá tu alias para cobrar">
+          <p class="hint">Se autocompletará en los nuevos grupos o cuando te vincules a un participante.</p>
+        </div>
+        <button class="btn btn-soft" id="saveProfileAliasBtn" style="margin-top:5px; width:100%; justify-content:center;">Guardar Cambios</button>
+      </div>
+
+      <div style="margin-top:20px; border-top:1px solid var(--line); padding-top:20px; display:grid; gap:12px;">
+        <button class="btn btn-danger" id="profileLogoutBtn">Cerrar Sesión</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- VISTA 5: PANEL DE ADMINISTRACION -->
+  <main id="adminView" class="view">
+    <div class="card">
+      <h2>Panel de Administración</h2>
+      <p class="sub">Monitoreo general de usuarios y grupos.</p>
+      
+      <div class="tab-nav" style="margin-top:15px;">
+        <button class="tab-btn active" data-tab="adminUsersTab">Usuarios</button>
+        <button class="tab-btn" data-tab="adminGroupsTab">Grupos Creados</button>
+      </div>
+
+      <!-- Admin Tab: Usuarios -->
+      <div id="adminUsersTab" class="tab-content active">
+        <div class="admin-table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Estado</th>
+                <th>Acción Premium</th>
+                <th>Password</th>
+              </tr>
+            </thead>
+            <tbody id="adminUsersList">
+              <tr><td colspan="5" style="text-align:center;">Cargando usuarios...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Admin Tab: Grupos -->
+      <div id="adminGroupsTab" class="tab-content">
+        <div class="admin-table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Grupo</th>
+                <th>Moneda</th>
+                <th>Miembros</th>
+                <th>Creado</th>
+              </tr>
+            </thead>
+            <tbody id="adminGroupsList">
+              <tr><td colspan="5" style="text-align:center;">Cargando grupos...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
 </div>
 
-<script>
-(function(){
-  "use strict";
-  var KEY = "repartija_v2";
-  var PALETTE = ["#5C8374","#C07A68","#7B9EA8","#B08968","#8A9B6E","#9C7CA5","#6B8E9E","#C0986B","#86A079","#B07C8E"];
+<!-- Footer Navigation Bar -->
+<nav class="bottom-nav" id="bottomNav">
+  <button class="nav-item active" id="navGroupsBtn">
+    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    Grupos
+  </button>
+  <button class="nav-item nav-item-center" id="navCreateBtn" title="Nuevo Grupo">
+    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+  <button class="nav-item" id="navProfileBtn">
+    <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    Perfil
+  </button>
+  <button class="nav-item" id="navAdminBtn" style="display:none;">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+    Admin
+  </button>
+</nav>
 
-  function range(a,b){var r=[];for(var i=a;i<=b;i++)r.push(i);return r;}
-  var ALL = range(1,15);
-  var SEED = {
-    people: [
-      {id:1,name:"Mezza",paysTo:null,alias:""},{id:2,name:"Sol",paysTo:null,alias:""},{id:3,name:"Belu",paysTo:null,alias:""},
-      {id:4,name:"Fede",paysTo:null,alias:""},{id:5,name:"Hurte",paysTo:null,alias:""},{id:6,name:"Shimo",paysTo:null,alias:""},
-      {id:7,name:"Vale",paysTo:null,alias:""},{id:8,name:"Cami",paysTo:null,alias:""},{id:9,name:"Nati",paysTo:null,alias:""},
-      {id:10,name:"Nico",paysTo:null,alias:""},{id:11,name:"Lucas",paysTo:10,alias:""},{id:12,name:"Mari",paysTo:null,alias:""},
-      {id:13,name:"FedeM",paysTo:10,alias:""},{id:14,name:"Pabli",paysTo:null,alias:""},{id:15,name:"Diego",paysTo:10,alias:""}
-    ],
-    couples: [[1,2],[10,9],[6,7],[11,12],[4,3]],
-    expenses: [
-      {id:100,desc:"Lo que puso Mezza",cents:7800000,payer:1,split:ALL.slice()},
-      {id:101,desc:"Lo que puso Shimo",cents:5200000,payer:6,split:ALL.slice()},
-      {id:102,desc:"Lo que puso Nico",cents:13000000,payer:10,split:ALL.slice()}
-    ],
-    roundG: 100, seq: 200
+<!-- Modal: Nuevo Grupo -->
+<div class="modal-overlay" id="createGroupModal">
+  <div class="modal">
+    <h3>Nuevo Grupo</h3>
+    <div style="display:grid; gap:12px;">
+      <div>
+        <label for="newGroupName">Nombre del Grupo</label>
+        <input type="text" id="newGroupName" placeholder="ej. Viaje Mendoza, Juntada Asado" maxlength="50">
+      </div>
+      <div>
+        <label for="newGroupCurrency">Moneda de Liquidación</label>
+        <select id="newGroupCurrency">
+          <option value="ARS">🇦🇷 ARS</option>
+          <option value="USD">🇺🇸 USD</option>
+          <option value="EUR">🇪🇺 EUR</option>
+          <option value="BRL">🇧🇷 BRL</option>
+          <option value="CLP">🇨🇱 CLP</option>
+          <option value="UYU">🇺🇾 UYU</option>
+        </select>
+        <p class="hint">Es la moneda en la que se calcularán los balances de los saldos finales.</p>
+      </div>
+    </div>
+    <div class="modal-buttons">
+      <button class="btn btn-soft" id="closeCreateGroupBtn">Cancelar</button>
+      <button class="btn" id="submitCreateGroupBtn">Crear Grupo</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Editar Grupo -->
+<div class="modal-overlay" id="editGroupModal">
+  <div class="modal">
+    <h3>Editar Grupo</h3>
+    <div style="display:grid; gap:12px;">
+      <div>
+        <label for="editGroupNameInput">Nombre del Grupo</label>
+        <input type="text" id="editGroupNameInput" maxlength="50">
+      </div>
+      <div>
+        <label for="editGroupCurrencyInput">Moneda de Liquidación</label>
+        <select id="editGroupCurrencyInput">
+          <option value="ARS">🇦🇷 ARS</option>
+          <option value="USD">🇺🇸 USD</option>
+          <option value="EUR">🇪🇺 EUR</option>
+          <option value="BRL">🇧🇷 BRL</option>
+          <option value="CLP">🇨🇱 CLP</option>
+          <option value="UYU">🇺🇾 UYU</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-buttons">
+      <button class="btn btn-soft" id="closeEditGroupBtn">Cancelar</button>
+      <button class="btn" id="submitEditGroupBtn">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Selección Gasto o Pago -->
+<div class="modal-overlay" id="expenseOrPaymentModal">
+  <div class="modal" style="max-width: 380px; text-align: center;">
+    <h3>¿Qué querés registrar?</h3>
+    <p class="sub" style="margin-bottom: 20px;">Elegí el tipo de transacción a cargar.</p>
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <button class="btn btn-block" id="selectAddExpenseBtn">Nuevo Gasto</button>
+      <button class="btn btn-soft btn-block" id="selectAddPaymentBtn">Registrar Pago / Transferencia</button>
+      <button class="btn btn-danger btn-block" id="closeExpenseOrPaymentBtn" style="background:#f4ecea; color:var(--owe);">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Nuevo Pago -->
+<div class="modal-overlay" id="addPaymentModal">
+  <div class="modal" style="max-width: 480px;">
+    <h3>Registrar Pago</h3>
+    <div class="fields" style="text-align: left;">
+      <div class="fields fields-2" style="margin:0;">
+        <div>
+          <label for="payAmount">Monto</label>
+          <input type="number" id="payAmount" placeholder="0" min="0" step="0.01">
+        </div>
+        <div>
+          <label for="payCurrency">Moneda</label>
+          <select id="payCurrency">
+            <option value="ARS">🇦🇷 ARS</option>
+            <option value="USD">🇺🇸 USD</option>
+            <option value="EUR">🇪🇺 EUR</option>
+            <option value="BRL">🇧🇷 BRL</option>
+            <option value="CLP">🇨🇱 CLP</option>
+            <option value="UYU">🇺🇾 UYU</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Tipo de Cambio para Pago -->
+      <div id="payExchangeRateContainer" style="display:none; background:var(--primary-tint); border:1px solid var(--primary-soft); padding:10px 14px; border-radius:var(--radius-sm);">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <span style="font-size:.85rem; font-weight:600; color:var(--primary-deep);" id="payRateLabel">Tipo de cambio a ARS:</span>
+          <input type="number" id="payExchangeRate" value="1" min="0.00001" step="0.0001" style="width:120px; padding:6px 10px; font-size:.9rem;">
+        </div>
+        <p class="hint" style="margin:4px 0 0; font-size:.78rem;">Cotización para la moneda del pago.</p>
+      </div>
+
+      <div class="fields fields-2" style="margin:0;">
+        <div>
+          <label for="payPayer">Deudor (quién pagó/transfirió)</label>
+          <select id="payPayer"></select>
+        </div>
+        <div>
+          <label for="payReceiver">Acreedor (quién recibió)</label>
+          <select id="payReceiver"></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-buttons">
+      <button class="btn btn-soft" id="closeAddPaymentBtn">Cancelar</button>
+      <button class="btn" id="submitAddPaymentBtn">Registrar Pago</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Nuevo Gasto -->
+<div class="modal-overlay" id="addExpenseModal">
+  <div class="modal" style="max-width: 520px;">
+    <h3>Nuevo Gasto</h3>
+    <div class="fields" style="text-align: left;">
+      <div>
+        <label for="expDesc">Concepto</label>
+        <input type="text" id="expDesc" placeholder="ej. Airbnb, Nafta, Cenas..." maxlength="80">
+      </div>
+      <div class="fields fields-2" style="margin:0;">
+        <div>
+          <label for="expAmount">Monto</label>
+          <input type="number" id="expAmount" placeholder="0" min="0" step="0.01">
+        </div>
+        <div>
+          <label for="expCurrency">Moneda</label>
+          <select id="expCurrency">
+            <option value="ARS">🇦🇷 ARS</option>
+            <option value="USD">🇺🇸 USD</option>
+            <option value="EUR">🇪🇺 EUR</option>
+            <option value="BRL">🇧🇷 BRL</option>
+            <option value="CLP">🇨🇱 CLP</option>
+            <option value="UYU">🇺🇾 UYU</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Tipo de Cambio -->
+      <div id="exchangeRateContainer" style="display:none; background:var(--primary-tint); border:1px solid var(--primary-soft); padding:10px 14px; border-radius:var(--radius-sm);">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <span style="font-size:.85rem; font-weight:600; color:var(--primary-deep);" id="rateLabel">Tipo de cambio a ARS:</span>
+          <input type="number" id="expExchangeRate" value="1" min="0.00001" step="0.0001" style="width:120px; padding:6px 10px; font-size:.9rem;">
+        </div>
+        <p class="hint" style="margin:4px 0 0; font-size:.78rem;">Se obtuvo automáticamente el tipo de cambio oficial de hoy. Podés modificarlo si usás otra cotización (ej. dólar blue).</p>
+      </div>
+
+      <div class="fields fields-2" style="margin:0;">
+        <div>
+          <label for="expPayer">Lo pagó</label>
+          <select id="expPayer"></select>
+        </div>
+        <div>
+          <label for="expCategory">Categoría</label>
+          <select id="expCategory">
+            <option value="Alojamiento">🏠 Alojamiento</option>
+            <option value="Comida">🍔 Comida</option>
+            <option value="Supermercado">🛒 Supermercado</option>
+            <option value="Transporte">🚗 Transporte</option>
+            <option value="Entretenimiento">🎟️ Entretenimiento</option>
+            <option value="Regalos">🎁 Regalos</option>
+            <option value="Compras">🛍️ Compras</option>
+            <option value="Otros" selected>❓ Otros</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label>Se divide entre</label>
+        <div class="split-box">
+          <div class="split-head">
+            <span class="t" id="splitCount">Todos</span>
+            <button type="button" id="toggleAllBtn">Ninguno</button>
+          </div>
+          <div class="split-grid" id="splitGrid"></div>
+        </div>
+      </div>
+    </div>
+</div>
+
+<!-- Modal: Editar Gasto -->
+<div class="modal-overlay" id="editExpenseModal">
+  <div class="modal" style="max-width: 520px;">
+    <h3>Editar Gasto</h3>
+    <input type="hidden" id="editExpId">
+    <div class="fields" style="text-align: left;">
+      <div>
+        <label for="editExpDesc">Concepto</label>
+        <input type="text" id="editExpDesc" placeholder="ej. Airbnb, Nafta, Cenas..." maxlength="80">
+      </div>
+      <div class="fields fields-2" style="margin:0;">
+        <div>
+          <label for="editExpAmount">Monto</label>
+          <input type="number" id="editExpAmount" placeholder="0" min="0" step="0.01">
+        </div>
+        <div>
+          <label for="editExpCurrency">Moneda</label>
+          <select id="editExpCurrency">
+            <option value="ARS">🇦🇷 ARS</option>
+            <option value="USD">🇺🇸 USD</option>
+            <option value="EUR">🇪🇺 EUR</option>
+            <option value="BRL">🇧🇷 BRL</option>
+            <option value="CLP">🇨🇱 CLP</option>
+            <option value="UYU">🇺🇾 UYU</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Tipo de Cambio -->
+      <div id="editExchangeRateContainer" style="display:none; background:var(--primary-tint); border:1px solid var(--primary-soft); padding:10px 14px; border-radius:var(--radius-sm);">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <span style="font-size:.85rem; font-weight:600; color:var(--primary-deep);" id="editRateLabel">Tipo de cambio a ARS:</span>
+          <input type="number" id="editExpExchangeRate" value="1" min="0.00001" step="0.0001" style="width:120px; padding:6px 10px; font-size:.9rem;">
+        </div>
+        <p class="hint" style="margin:4px 0 0; font-size:.78rem;">Se obtuvo automáticamente el tipo de cambio oficial. Podés modificarlo si usás otra cotización.</p>
+      </div>
+
+      <div class="fields fields-2" style="margin:0;">
+        <div>
+          <label for="editExpPayer">Lo pagó</label>
+          <select id="editExpPayer"></select>
+        </div>
+        <div>
+          <label for="editExpCategory">Categoría</label>
+          <select id="editExpCategory">
+            <option value="Alojamiento">🏠 Alojamiento</option>
+            <option value="Comida">🍔 Comida</option>
+            <option value="Supermercado">🛒 Supermercado</option>
+            <option value="Transporte">🚗 Transporte</option>
+            <option value="Entretenimiento">🎟️ Entretenimiento</option>
+            <option value="Regalos">🎁 Regalos</option>
+            <option value="Compras">🛍️ Compras</option>
+            <option value="Otros">❓ Otros</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label>Se divide entre</label>
+        <div class="split-box">
+          <div class="split-head">
+            <span class="t" id="editSplitCount">Todos</span>
+            <button type="button" id="editToggleAllBtn">Ninguno</button>
+          </div>
+          <div class="split-grid" id="editSplitGrid"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-buttons">
+      <button class="btn btn-soft" id="closeEditExpenseBtn">Cancelar</button>
+      <button class="btn" id="submitUpdateExpenseBtn">Guardar Cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Editar Pago -->
+<div class="modal-overlay" id="editPaymentModal">
+  <div class="modal" style="max-width: 480px;">
+    <h3>Editar Pago</h3>
+    <input type="hidden" id="editPayId">
+    <div class="fields" style="text-align: left;">
+      <div class="fields fields-2" style="margin:0;">
+        <div>
+          <label for="editPayAmount">Monto</label>
+          <input type="number" id="editPayAmount" placeholder="0" min="0" step="0.01">
+        </div>
+        <div>
+          <label for="editPayCurrency">Moneda</label>
+          <select id="editPayCurrency">
+            <option value="ARS">🇦🇷 ARS</option>
+            <option value="USD">🇺🇸 USD</option>
+            <option value="EUR">🇪🇺 EUR</option>
+            <option value="BRL">🇧🇷 BRL</option>
+            <option value="CLP">🇨🇱 CLP</option>
+            <option value="UYU">🇺🇾 UYU</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Tipo de Cambio para Pago -->
+      <div id="editPayExchangeRateContainer" style="display:none; background:var(--primary-tint); border:1px solid var(--primary-soft); padding:10px 14px; border-radius:var(--radius-sm);">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <span style="font-size:.85rem; font-weight:600; color:var(--primary-deep);" id="editPayRateLabel">Tipo de cambio a ARS:</span>
+          <input type="number" id="editPayExchangeRate" value="1" min="0.00001" step="0.0001" style="width:120px; padding:6px 10px; font-size:.9rem;">
+        </div>
+        <p class="hint" style="margin:4px 0 0; font-size:.78rem;">Cotización para la moneda del pago.</p>
+      </div>
+
+      <div class="fields fields-2" style="margin:0;">
+        <div>
+          <label for="editPayPayer">Deudor (quién pagó/transfirió)</label>
+          <select id="editPayPayer"></select>
+        </div>
+        <div>
+          <label for="editPayReceiver">Acreedor (quién recibió)</label>
+          <select id="editPayReceiver"></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-buttons">
+      <button class="btn btn-soft" id="closeEditPaymentBtn">Cancelar</button>
+      <button class="btn" id="submitUpdatePaymentBtn">Guardar Cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Unirse al Grupo -->
+<div class="modal-overlay" id="joinGroupModal">
+  <div class="modal">
+    <h3 id="joinGroupTitle">Unirse al Grupo</h3>
+    <p class="sub" id="joinGroupSubtitle" style="margin-bottom:15px;"></p>
+    
+    <div style="display:grid; gap:12px; text-align: left;">
+      <div>
+        <label for="joinGroupSelect">¿Quién sos en este grupo?</label>
+        <select id="joinGroupSelect"></select>
+        <p class="hint" style="margin-top:6px;">Si el creador ya te agregó a la lista, seleccionalo. Si no, elegí "Soy nuevo/a".</p>
+      </div>
+    </div>
+    
+    <div class="modal-buttons">
+      <button class="btn btn-soft" id="cancelJoinGroupBtn">Cancelar</button>
+      <button class="btn" id="submitJoinGroupBtn">Unirse al Grupo</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Notificación</div>
+
+<!-- Firebase SDK Imports and SPA logic -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+  import { 
+    getAuth, 
+    signInWithPopup, 
+    GoogleAuthProvider, 
+    signOut, 
+    onAuthStateChanged,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    sendPasswordResetEmail
+  } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+  import { 
+    getFirestore, 
+    doc, 
+    setDoc, 
+    getDoc, 
+    collection, 
+    addDoc, 
+    updateDoc, 
+    deleteDoc,
+    query, 
+    where, 
+    orderBy, 
+    limit, 
+    getDocs, 
+    startAfter,
+    onSnapshot,
+    serverTimestamp
+  } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+  import { firebaseConfig } from './firebase-config.js';
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const provider = new GoogleAuthProvider();
+
+  // Application State
+  let currentUser = null;
+  let currentUserDefaultAlias = '';
+  let activeGroup = null;
+  let activeGroupId = null;
+  let activeGroupListener = null;
+  let expensesListener = null;
+  
+  // Pagination State
+  let expenses = [];
+  let lastVisibleExpense = null;
+  let hasMoreExpenses = true;
+  const EXPENSES_LIMIT = 10;
+
+  // Cached Exchange Rates
+  let exchangeRatesCache = {};
+
+  // Utility for Async button loading states
+  async function withLoading(btn, callback) {
+    if (!btn || btn.disabled) return;
+    const oldHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.classList.add('btn-loading');
+    btn.innerHTML = `<span class="loading-spinner"></span>Cargando...`;
+    try {
+      await callback();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      btn.innerHTML = oldHtml;
+      btn.disabled = false;
+      btn.classList.remove('btn-loading');
+    }
+  }
+
+  // Helpers
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c] || c));
+  const initials = (name) => {
+    const parts = name.trim().split(/\s+/);
+    return (parts[0][0] + (parts[1] ? parts[1][0] : "")).toUpperCase();
+  };
+  
+  // Flags mapping
+  const flags = { ARS: "🇦🇷", USD: "🇺🇸", EUR: "🇪🇺", BRL: "🇧🇷", CLP: "🇨🇱", UYU: "🇺🇾" };
+  const getMoneyFormatter = (currency) => {
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
   };
 
-  var state;
-  function clone(o){return JSON.parse(JSON.stringify(o));}
-  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
-  function normalize(){
-    if(!state.people) state.people=[];
-    if(!state.expenses) state.expenses=[];
-    if(!state.couples) state.couples=[];
-    if(!state.roundG) state.roundG=100;
-    if(!state.seq) state.seq=1;
-    state.people.forEach(function(p){ if(p.paysTo===undefined) p.paysTo=null; if(p.alias===undefined) p.alias=""; });
+  function toast(msg) {
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('active');
+    setTimeout(() => t.classList.remove('active'), 2500);
   }
-  function load(){
-    try{ var raw=localStorage.getItem(KEY); if(raw){state=JSON.parse(raw); normalize(); return;} }catch(e){}
-    state=clone(SEED); normalize();
+  window.toast = toast; // Export to global scope
+
+  // Auth Status Watcher
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      currentUser = user;
+      
+      // Save/retrieve user profile info in Firestore (default metadata)
+      const userRef = doc(db, 'users', user.uid);
+      const userSnap = await getDoc(userRef);
+      if (!userSnap.exists()) {
+        await setDoc(userRef, {
+          uid: user.uid,
+          name: user.displayName || user.email.split('@')[0],
+          email: user.email,
+          photoURL: user.photoURL || '',
+          createdAt: serverTimestamp()
+        });
+        currentUserDefaultAlias = '';
+      } else {
+        const uData = userSnap.data();
+        currentUserDefaultAlias = uData.defaultAlias || '';
+        await setDoc(userRef, {
+          uid: user.uid,
+          name: uData.name || user.displayName || user.email.split('@')[0],
+          email: user.email,
+          photoURL: user.photoURL || ''
+        }, { merge: true });
+      }
+
+      // Enable bottom nav bar
+      $('bottomNav').classList.add('visible');
+
+      // Check if user is the admin
+      if (user.email === 'nicolasescudero5@gmail.com') {
+        $('navAdminBtn').style.display = 'flex';
+      } else {
+        $('navAdminBtn').style.display = 'none';
+      }
+
+      // Router logic
+      const hash = window.location.hash;
+      if (hash.startsWith('#/group/')) {
+        const gid = hash.split('#/group/')[1];
+        loadGroup(gid);
+      } else {
+        showView('groupsView');
+        loadGroups();
+      }
+    } else {
+      currentUser = null;
+      activeGroupId = null;
+      activeGroup = null;
+      $('bottomNav').classList.remove('visible');
+      showView('loginView');
+      window.location.hash = '';
+    }
+  });
+
+  // Views Router helper
+  function showView(viewId) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    $(viewId).classList.add('active');
+
+    // Update bottom nav active indicators
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    if (viewId === 'groupsView' || viewId === 'groupDetailsView') {
+      $('navGroupsBtn').classList.add('active');
+    } else if (viewId === 'profileView') {
+      $('navProfileBtn').classList.add('active');
+    } else if (viewId === 'adminView') {
+      $('navAdminBtn').classList.add('active');
+    }
+
+    // Toggle center "+" button display depending on view
+    if (viewId === 'groupDetailsView') {
+      $('navCreateBtn').style.display = 'flex';
+      $('navCreateBtn').title = 'Nuevo Gasto';
+    } else {
+      $('navCreateBtn').style.display = 'none';
+    }
   }
 
-  var fmt = new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',minimumFractionDigits:2,maximumFractionDigits:2});
-  var fmt0 = new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',minimumFractionDigits:0,maximumFractionDigits:0});
-  function money(cents){ return (state.roundG>=100 && cents%100===0) ? fmt0.format(cents/100) : fmt.format(cents/100); }
-  function initials(name){ var p=name.trim().split(/\s+/); return (p[0][0]+(p[1]?p[1][0]:"")).toUpperCase(); }
-  function personById(id){ return state.people.find(function(p){return p.id===id;}); }
-  function colorFor(id){ var i=state.people.findIndex(function(p){return p.id===id;}); return PALETTE[(i<0?0:i)%PALETTE.length]; }
-  function firstName(id){ var p=personById(id); return p?p.name.split(/\s+/)[0]:"?"; }
-  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
-  function coupleOf(id){ return state.couples.find(function(c){return c.indexOf(id)>=0;}); }
+  // Bottom Nav bar click events
+  $('navGroupsBtn').addEventListener('click', () => {
+    if (currentUser) {
+      if (activeGroupListener) activeGroupListener();
+      if (expensesListener) expensesListener();
+      activeGroupId = null;
+      activeGroup = null;
+      showView('groupsView');
+      loadGroups();
+      window.location.hash = '';
+    }
+  });
 
-  var $=function(id){return document.getElementById(id);};
-  var nameInput=$('nameInput'), chips=$('chips'), aliasPanel=$('aliasPanel'),
-      expDesc=$('expDesc'), expAmount=$('expAmount'), expPayer=$('expPayer'), splitGrid=$('splitGrid'),
-      splitCount=$('splitCount'), expList=$('expList'),
-      pairList=$('pairList'), pairA=$('pairA'), pairB=$('pairB'), ruleList=$('ruleList'), ruleP=$('ruleP'), ruleT=$('ruleT'),
-      roundSel=$('roundSel'), resultsCard=$('resultsCard'), totals=$('totals'), balancesEl=$('balances'),
-      settlementEl=$('settlement'), movesNote=$('movesNote');
+  $('btnShowCreateGroupModal').addEventListener('click', () => {
+    if (currentUser) {
+      $('createGroupModal').classList.add('active');
+    }
+  });
 
-  // Participantes
-  function addPerson(){
-    var name=nameInput.value.trim(); if(!name) return;
-    if(state.people.some(function(p){return p.name.toLowerCase()===name.toLowerCase();})){ flash(nameInput); nameInput.value=""; return; }
-    state.people.push({id:state.seq++,name:name,paysTo:null,alias:""}); nameInput.value=""; renderAll(); nameInput.focus();
-  }
-  function removePerson(id){
-    var used=state.expenses.some(function(e){return e.payer===id||e.split.indexOf(id)>=0;})||coupleOf(id)||personById(id).paysTo||state.people.some(function(p){return p.paysTo===id;});
-    if(used && !confirm("Esa persona aparece en gastos, parejas o reglas. Si la sacás, se ajusta todo eso. ¿Seguir?")) return;
-    state.people=state.people.filter(function(p){return p.id!==id;});
-    state.expenses=state.expenses.filter(function(e){return e.payer!==id;});
-    state.expenses.forEach(function(e){e.split=e.split.filter(function(s){return s!==id;});});
-    state.expenses=state.expenses.filter(function(e){return e.split.length>0;});
-    state.couples=state.couples.filter(function(c){return c.indexOf(id)<0;});
-    state.people.forEach(function(p){ if(p.paysTo===id) p.paysTo=null; });
-    renderAll();
-  }
-  function flash(el){ el.style.borderColor="var(--owe)"; setTimeout(function(){el.style.borderColor="";},600); }
-  function renderChips(){
-    if(!state.people.length){ chips.innerHTML='<p class="empty" style="width:100%">Todavía no hay nadie. Empezá agregando a la primera persona.</p>'; return; }
-    chips.innerHTML=state.people.map(function(p){
-      return '<span class="chip"><span class="avatar" style="background:'+colorFor(p.id)+'">'+initials(p.name)+'</span>'+esc(p.name)+'<button title="Quitar" data-rm="'+p.id+'">&times;</button></span>';
-    }).join('');
-  }
+  $('navCreateBtn').addEventListener('click', () => {
+    if (currentUser && activeGroupId) {
+      $('expenseOrPaymentModal').classList.add('active');
+    }
+  });
 
-  // Alias (solo para quienes pagaron)
-  function payersList(){ var m={}; state.expenses.forEach(function(e){m[e.payer]=1;}); return Object.keys(m).map(Number).filter(function(id){return personById(id);}); }
-  function renderAliasPanel(){
-    var payers=payersList();
-    if(!payers.length){ aliasPanel.innerHTML='<p class="hint" style="margin:0">Cuando cargues gastos, acá vas a poder poner el alias de quienes pagaron, para que aparezca en cada transferencia.</p>'; return; }
-    aliasPanel.innerHTML=payers.map(function(id){
-      var p=personById(id);
-      return '<div class="alias-row"><span class="avatar" style="background:'+colorFor(id)+'">'+initials(p.name)+'</span><span class="nm">'+esc(firstName(id))+'</span>'+
-        '<input type="text" data-alias="'+id+'" value="'+esc(p.alias||'')+'" placeholder="alias / CBU / CVU" autocomplete="off"></div>';
-    }).join('');
-  }
+  $('navProfileBtn').addEventListener('click', () => {
+    if (currentUser) {
+      showView('profileView');
+      renderProfileView();
+    }
+  });
 
-  // Form gasto
-  function fillSelect(sel,exceptId,placeholder){
-    var cur=sel.value;
-    sel.innerHTML=(placeholder?'<option value="">'+placeholder+'</option>':'')+state.people.filter(function(p){return p.id!==exceptId;}).map(function(p){return '<option value="'+p.id+'">'+esc(p.name)+'</option>';}).join('');
-    if(cur && sel.querySelector('[value="'+cur+'"]')) sel.value=cur;
-  }
-  function renderExpenseForm(){
-    fillSelect(expPayer,null,null);
-    var prev=getSelectedSplit(); var prevSet=prev.length?prev:state.people.map(function(p){return p.id;});
-    splitGrid.innerHTML=state.people.map(function(p){
-      return '<label class="pchk"><input type="checkbox" value="'+p.id+'" '+(prevSet.indexOf(p.id)>=0?'checked':'')+'><span class="dot"></span>'+esc(firstName(p.id))+'</label>';
-    }).join('');
-    updateSplitCount();
-  }
-  function getSelectedSplit(){ return Array.prototype.slice.call(splitGrid.querySelectorAll('input:checked')).map(function(i){return parseInt(i.value);}); }
-  function updateSplitCount(){
-    var n=getSelectedSplit().length,t=state.people.length;
-    splitCount.textContent=(n===t&&t>0)?"Todos ("+n+")":(n===0?"Nadie seleccionado":n+" de "+t);
-    $('toggleAllBtn').textContent=(n===t)?"Ninguno":"Todos";
-  }
-  function addExpense(){
-    var desc=expDesc.value.trim()||"Gasto", amount=parseFloat(expAmount.value), payer=parseInt(expPayer.value), split=getSelectedSplit();
-    if(isNaN(amount)||amount<=0){flash(expAmount);return;}
-    if(!payer||!personById(payer)){flash(expPayer);return;}
-    if(!split.length){flash(splitGrid.closest('.split-box'));return;}
-    state.expenses.push({id:state.seq++,desc:desc,cents:Math.round(amount*100),payer:payer,split:split});
-    expDesc.value="";expAmount.value="";renderAll();expDesc.focus();
-  }
-  function removeExpense(id){ state.expenses=state.expenses.filter(function(e){return e.id!==id;}); renderAll(); }
-  function renderExpenseList(){
-    if(!state.expenses.length){ expList.innerHTML=state.people.length?'<p class="empty">Sin gastos cargados. Sumá el primero arriba.</p>':''; return; }
-    expList.innerHTML=state.expenses.map(function(e){
-      var payer=personById(e.payer);
-      var splitTxt=(e.split.length===state.people.length)?"todos":e.split.map(firstName).join(", ");
-      return '<div class="exp"><div class="body"><div class="desc">'+esc(e.desc)+'</div><div class="meta">Pagó <b>'+esc(payer?payer.name:"?")+'</b> · entre '+esc(splitTxt)+'</div></div>'+
-        '<div class="amt">'+money(e.cents)+'</div>'+
-        '<button class="del" title="Eliminar" data-rmexp="'+e.id+'"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m5 0V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2"/></svg></button></div>';
-    }).join('');
+  $('navAdminBtn').addEventListener('click', () => {
+    if (currentUser && currentUser.email === 'nicolasescudero5@gmail.com') {
+      showView('adminView');
+      loadAdminPanel();
+    }
+  });
+
+  // Render User Profile View
+  async function renderProfileView() {
+    if (!currentUser) return;
+    const userRef = doc(db, 'users', currentUser.uid);
+    const snap = await getDoc(userRef);
+    const uData = snap.exists() ? snap.data() : { name: currentUser.displayName || currentUser.email, isPremium: false };
+
+    // Avatar
+    if (currentUser.photoURL) {
+      $('profileAvatar').outerHTML = `<img id="profileAvatar" class="profile-avatar" src="${currentUser.photoURL}" alt="Avatar">`;
+    } else {
+      $('profileAvatar').outerHTML = `<div id="profileAvatar" class="profile-avatar">${initials(uData.name)}</div>`;
+    }
+
+    $('profileNameText').textContent = uData.name;
+    $('profileEmailText').textContent = currentUser.email;
+    $('profileDefaultAliasInput').value = uData.defaultAlias || '';
+    $('profileNicknameInput').value = uData.nickname || '';
+
+    // Premium status indicator
+    const premiumContainer = $('premiumStatusContainer');
+    if (uData.isPremium) {
+      premiumContainer.innerHTML = `
+        <span class="premium-tag">
+          <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          Miembro Premium
+        </span>
+      `;
+    } else {
+      premiumContainer.innerHTML = `<span class="premium-tag" style="background:var(--line-soft); color:var(--muted);">Plan Estándar</span>`;
+    }
   }
 
-  // Parejas
-  function renderPairs(){
-    fillSelect(pairA,null,"Persona…"); fillSelect(pairB,null,"Persona…");
-    Array.prototype.forEach.call(pairA.options,function(o){if(o.value&&coupleOf(parseInt(o.value)))o.disabled=true;});
-    Array.prototype.forEach.call(pairB.options,function(o){if(o.value&&coupleOf(parseInt(o.value)))o.disabled=true;});
-    pairList.innerHTML=state.couples.length?state.couples.map(function(c,i){
-      return '<span class="pair">'+esc(firstName(c[0]))+' &amp; '+esc(firstName(c[1]))+'<button class="x" title="Separar" data-rmpair="'+i+'">&times;</button></span>';
-    }).join(''):'<p class="hint" style="margin:0">Sin parejas: cada uno paga por su cuenta.</p>';
-  }
-  function addPair(){ var a=parseInt(pairA.value),b=parseInt(pairB.value); if(!a||!b||a===b){flash(pairA);return;} if(coupleOf(a)||coupleOf(b))return; state.couples.push([a,b]); pairA.value="";pairB.value="";renderAll(); }
-  function removePair(i){ state.couples.splice(i,1); renderAll(); }
+  $('saveProfileAliasBtn').addEventListener('click', () => {
+    withLoading($('saveProfileAliasBtn'), async () => {
+      if (!currentUser) return;
+      const alias = $('profileDefaultAliasInput').value.trim();
+      const nickname = $('profileNicknameInput').value.trim();
+      try {
+        await setDoc(doc(db, 'users', currentUser.uid), {
+          defaultAlias: alias,
+          nickname: nickname
+        }, { merge: true });
+        currentUserDefaultAlias = alias; // Update global cache
+        toast('Cambios guardados');
 
-  // Reglas
-  function renderRules(){
-    fillSelect(ruleP,null,"Persona…"); fillSelect(ruleT,parseInt(ruleP.value)||null,"…le paga a");
-    var rules=state.people.filter(function(p){return p.paysTo;});
-    ruleList.innerHTML=rules.length?rules.map(function(p){
-      return '<span class="rule">'+esc(firstName(p.id))+' <span class="arrow">→</span> '+esc(firstName(p.paysTo))+'<button class="x" title="Quitar regla" data-rmrule="'+p.id+'">&times;</button></span>';
-    }).join(''):'<p class="hint" style="margin:0">Sin reglas: todos pueden pagarle a cualquiera.</p>';
-  }
-  function addRule(){ var p=parseInt(ruleP.value),t=parseInt(ruleT.value); if(!p||!t||p===t){flash(ruleP);return;} personById(p).paysTo=t; ruleP.value="";ruleT.value="";renderAll(); }
-  function removeRule(id){ var p=personById(id); if(p)p.paysTo=null; renderAll(); }
-
-  // Balances + liquidación
-  function computeBalances(){
-    var bal={}; state.people.forEach(function(p){bal[p.id]=0;});
-    state.expenses.forEach(function(e){
-      bal[e.payer]+=e.cents; var n=e.split.length, base=Math.floor(e.cents/n), rem=e.cents-base*n;
-      e.split.forEach(function(s,i){ bal[s]-=base+(i<rem?1:0); });
-    });
-    return bal;
-  }
-  function buildUnits(bal){
-    var used={},units=[];
-    state.couples.forEach(function(c){ if(personById(c[0])&&personById(c[1])){ units.push({ids:c.slice(),bal:bal[c[0]]+bal[c[1]]}); used[c[0]]=used[c[1]]=1; } });
-    state.people.forEach(function(p){ if(!used[p.id]) units.push({ids:[p.id],bal:bal[p.id]}); });
-    return units;
-  }
-  function roundUnits(units,g){
-    if(g<=1) return units.map(function(u){return {ids:u.ids,bal:u.bal};});
-    var r=units.map(function(u){return {ids:u.ids,bal:Math.round(u.bal/g)*g};});
-    var res=-r.reduce(function(s,u){return s+u.bal;},0);
-    if(res!==0){ var mi=0; r.forEach(function(u,i){ if(Math.abs(u.bal)>Math.abs(r[mi].bal)) mi=i; }); r[mi].bal+=res; }
-    return r;
-  }
-  function unitTarget(u){ for(var k=0;k<u.ids.length;k++){ var t=personById(u.ids[k]).paysTo; if(t) return t; } return null; }
-  function settle(bal){
-    var units=roundUnits(buildUnits(bal),state.roundG);
-    var creds=units.filter(function(u){return u.bal>0;}).map(function(u){return {ids:u.ids,rem:u.bal};});
-    var debs=units.filter(function(u){return u.bal<0;}).map(function(u){return {ids:u.ids,target:unitTarget(u),rem:-u.bal};});
-    var moves=[];
-    function crByMember(pid){ return creds.find(function(c){return c.rem>0&&c.ids.indexOf(pid)>=0;}); }
-    debs.filter(function(d){return d.target;}).forEach(function(d){
-      var c=crByMember(d.target); if(c){ var x=Math.min(d.rem,c.rem); if(x>0){ moves.push({from:d.ids,to:c.ids,cents:x}); d.rem-=x; c.rem-=x; } }
-    });
-    var rest=debs.filter(function(d){return d.rem>0;}).sort(function(a,b){return (b.ids.length-a.ids.length)||(b.rem-a.rem);});
-    rest.forEach(function(d){
-      var guard=0;
-      while(d.rem>0 && guard++<50){
-        var av=creds.filter(function(c){return c.rem>0;}); if(!av.length) break;
-        var fit=av.filter(function(c){return c.rem>=d.rem;}).sort(function(a,b){return a.rem-b.rem;})[0];
-        var c=fit||av.sort(function(a,b){return b.rem-a.rem;})[0];
-        var x=Math.min(d.rem,c.rem); moves.push({from:d.ids,to:c.ids,cents:x}); d.rem-=x; c.rem-=x;
+        // Propagate update to active group if user is a linked participant
+        if (activeGroup && activeGroupId) {
+          const parts = { ...activeGroup.participants };
+          const myPart = Object.values(parts).find(p => String(p.userId) === String(currentUser.uid));
+          if (myPart) {
+            let changed = false;
+            if (myPart.alias !== alias) {
+              myPart.alias = alias;
+              changed = true;
+            }
+            const expectedName = nickname || currentUser.displayName || currentUser.email.split('@')[0];
+            if (myPart.name !== expectedName) {
+              myPart.name = expectedName;
+              changed = true;
+            }
+            if (changed) {
+              await updateDoc(doc(db, 'groups', activeGroupId), {
+                participants: parts,
+                updatedAt: serverTimestamp()
+              });
+            }
+          }
+        }
+      } catch(err) {
+        toast('Error al guardar cambios: ' + err.message);
       }
     });
-    return {units:units,moves:moves};
+  });
+
+  $('profileLogoutBtn').addEventListener('click', () => signOut(auth));
+
+  // Social Login handlers
+  $('googleLoginBtn').addEventListener('click', () => {
+    withLoading($('googleLoginBtn'), async () => {
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (err) {
+        toast('Error al conectar con Google: ' + err.message);
+      }
+    });
+  });
+
+  // Manual login / signup
+  $('signInEmailBtn').addEventListener('click', () => {
+    withLoading($('signInEmailBtn'), async () => {
+      const email = $('emailInput').value.trim();
+      const password = $('passwordInput').value;
+      if (!email || !password) { toast('Cargá email y contraseña'); return; }
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (err) {
+        toast('Error al ingresar: ' + err.message);
+      }
+    });
+  });
+
+  $('signUpEmailBtn').addEventListener('click', () => {
+    withLoading($('signUpEmailBtn'), async () => {
+      const email = $('emailInput').value.trim();
+      const password = $('passwordInput').value;
+      if (!email || !password) { toast('Cargá email y contraseña'); return; }
+      if (password.length < 6) { toast('La contraseña debe tener al menos 6 caracteres'); return; }
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        toast('¡Registro exitoso!');
+      } catch (err) {
+        toast('Error al registrarse: ' + err.message);
+      }
+    });
+  });
+
+  // --- GROUPS LIST SECTION ---
+  $('closeCreateGroupBtn').addEventListener('click', () => $('createGroupModal').classList.remove('active'));
+
+  $('submitCreateGroupBtn').addEventListener('click', () => {
+    withLoading($('submitCreateGroupBtn'), async () => {
+      const name = $('newGroupName').value.trim();
+      const currency = $('newGroupCurrency').value;
+      if (!name) { toast('Ingresá el nombre del grupo'); return; }
+      
+      try {
+        const docRef = doc(collection(db, 'groups'));
+        
+        // Retrieve creator name / nickname
+        const userRef = doc(db, 'users', currentUser.uid);
+        const userSnap = await getDoc(userRef);
+        const uData = userSnap.exists() ? userSnap.data() : {};
+        const creatorName = uData.nickname || uData.name || currentUser.displayName || currentUser.email.split('@')[0];
+        const creatorAlias = uData.defaultAlias || '';
+        
+        const participants = {
+          "1": {
+            id: "1",
+            name: creatorName,
+            alias: creatorAlias,
+            userId: currentUser.uid,
+            isAdmin: true,
+            paysTo: null
+          }
+        };
+
+        await setDoc(docRef, {
+          id: docRef.id,
+          name: name,
+          ownerId: currentUser.uid,
+          currency: currency,
+          members: [currentUser.uid],
+          participants: participants,
+          couples: [],
+          rules: { allowAllToEdit: true },
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+
+        $('newGroupName').value = '';
+        $('createGroupModal').classList.remove('active');
+        toast('¡Grupo creado!');
+        loadGroup(docRef.id);
+      } catch(err) {
+        toast('Error al crear grupo: ' + err.message);
+      }
+    });
+  });
+
+  async function loadGroups() {
+    if (!currentUser) return;
+    const q = query(collection(db, 'groups'), where('members', 'array-contains', currentUser.uid));
+    
+    onSnapshot(q, (snapshot) => {
+      const container = $('groupsList');
+      if (snapshot.empty) {
+        container.innerHTML = '<p class="empty">No estás en ningún grupo todavía. ¡Creá uno presionando el botón "+" de abajo!</p>';
+        return;
+      }
+      
+      container.innerHTML = snapshot.docs.map(doc => {
+        const g = doc.data();
+        const pCount = Object.keys(g.participants || {}).length;
+        return `
+          <div class="group-card" data-gid="${g.id}">
+            <h3>${esc(g.name)}</h3>
+            <div class="meta">
+              <span>${pCount} participante(s)</span>
+              <span>Moneda: ${g.currency}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.querySelectorAll('.group-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const gid = card.getAttribute('data-gid');
+          loadGroup(gid);
+        });
+      });
+    });
   }
 
-  function unitLabel(ids){ return ids.map(firstName).join(" & "); }
-  function unitAlias(ids){ return ids.map(function(id){var p=personById(id);return p&&p.alias?p.alias.trim():"";}).filter(Boolean).join("  ·  "); }
-  function whoBlock(ids){
-    var al=unitAlias(ids);
-    return '<div class="who"><span class="avatar" style="background:'+colorFor(ids[0])+'">'+initials(personById(ids[0]).name)+'</span>'+
-      '<span class="who-txt"><span class="nm">'+esc(unitLabel(ids))+'</span>'+(al?'<span class="alias">'+esc(al)+'</span>':'')+'</span></div>';
+  // Handle invitation link if query parameter exists
+  let groupToJoin = null;
+
+  function findParticipantMatch(userName, email, participants) {
+    const cleanName = userName.toLowerCase().trim();
+    const cleanEmail = email.toLowerCase().trim();
+    const emailPrefix = cleanEmail.split('@')[0];
+    
+    for (const p of Object.values(participants)) {
+      if (p.userId) continue; // Already linked
+      const pName = p.name.toLowerCase().trim();
+      
+      // Match if participant name is part of user name, or vice versa, or matches email prefix
+      if (cleanName.includes(pName) || pName.includes(cleanName) || pName === emailPrefix) {
+        return p.id;
+      }
+    }
+    return null;
   }
 
-  function renderResults(){
-    if(state.people.length<2 || !state.expenses.length){ resultsCard.style.display="none"; return; }
-    resultsCard.style.display="block";
-    var bal=computeBalances();
-    var totalCents=state.expenses.reduce(function(a,e){return a+e.cents;},0);
-    var r=settle(bal);
+  async function openJoinGroupModal(group) {
+    groupToJoin = group;
+    $('joinGroupTitle').textContent = `Unirse a "${group.name}"`;
+    
+    // Fetch user profile data to know their name and default alias
+    const userSnap = await getDoc(doc(db, 'users', currentUser.uid));
+    const uData = userSnap.exists() ? userSnap.data() : {};
+    const userName = uData.name || currentUser.displayName || currentUser.email.split('@')[0];
+    const userEmail = currentUser.email;
 
-    totals.innerHTML='<div class="stat"><div class="k">Total gastado</div><div class="v">'+money(totalCents)+'</div></div>'+
-      '<div class="stat"><div class="k">Participantes</div><div class="v">'+state.people.length+'</div></div>';
+    $('joinGroupSubtitle').textContent = `Te invitaron a unirte a este grupo. ¿Quién sos en la lista?`;
 
-    var maxAbs=Math.max(1,Math.max.apply(null,r.units.map(function(u){return Math.abs(u.bal);})));
-    balancesEl.innerHTML=r.units.slice().sort(function(a,b){return b.bal-a.bal;}).map(function(u){
-      var v=u.bal, pct=Math.abs(v)/maxAbs*50, cls=v>0?'pos':(v<0?'neg':'zero');
-      var fill=v>=0?'<div class="bal-fill" style="left:50%;width:'+pct+'%;background:var(--credit-soft)"></div>':'<div class="bal-fill" style="right:50%;width:'+pct+'%;background:var(--owe-soft)"></div>';
-      var txt=v>0?'+'+money(v):(v<0?'−'+money(-v):'a mano');
-      return '<div class="bal-row"><div class="bal-name"><span class="avatar" style="background:'+colorFor(u.ids[0])+'">'+initials(personById(u.ids[0]).name)+'</span>'+esc(unitLabel(u.ids))+'</div>'+
-        '<div class="bal-track"><div class="bal-mid"></div>'+fill+'</div><div class="bal-amt '+cls+'">'+txt+'</div></div>';
+    // Populate dropdown with options
+    const select = $('joinGroupSelect');
+    const parts = Object.values(group.participants || {});
+    
+    let html = `<option value="NEW">Soy nuevo/a (agregarme como "${userName}")</option>`;
+    
+    // Filter unlinked participants
+    const unlinkedParts = parts.filter(p => !p.userId);
+    html += unlinkedParts.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+    select.innerHTML = html;
+
+    // Auto-select match
+    const matchedId = findParticipantMatch(userName, userEmail, group.participants || {});
+    if (matchedId) {
+      select.value = matchedId;
+    } else {
+      select.value = 'NEW';
+    }
+
+    $('joinGroupModal').classList.add('active');
+  }
+
+  $('cancelJoinGroupBtn').addEventListener('click', () => {
+    $('joinGroupModal').classList.remove('active');
+    groupToJoin = null;
+    showView('groupsView');
+    loadGroups();
+  });
+
+  $('submitJoinGroupBtn').addEventListener('click', () => {
+    withLoading($('submitJoinGroupBtn'), async () => {
+      if (!groupToJoin || !currentUser) return;
+      const selectVal = $('joinGroupSelect').value;
+      
+      const groupRef = doc(db, 'groups', groupToJoin.id);
+      const parts = { ...groupToJoin.participants };
+      
+      // Get user profile data
+      const userSnap = await getDoc(doc(db, 'users', currentUser.uid));
+      const uData = userSnap.exists() ? userSnap.data() : {};
+      const userName = uData.nickname || uData.name || currentUser.displayName || currentUser.email.split('@')[0];
+      const userAlias = uData.defaultAlias || '';
+
+      if (selectVal === 'NEW') {
+        // Create new participant
+        let seq = 1;
+        while (parts[String(seq)]) seq++;
+        const newId = String(seq);
+        parts[newId] = {
+          id: newId,
+          name: userName,
+          paysTo: null,
+          alias: userAlias,
+          userId: currentUser.uid
+        };
+      } else {
+        // Link existing participant
+        if (parts[selectVal]) {
+          parts[selectVal].name = userName;
+          parts[selectVal].userId = currentUser.uid;
+          if (userAlias) {
+            parts[selectVal].alias = userAlias;
+          }
+        }
+      }
+
+      const updatedMembers = [...groupToJoin.members, currentUser.uid];
+
+      try {
+        await updateDoc(groupRef, {
+          members: updatedMembers,
+          participants: parts,
+          updatedAt: serverTimestamp()
+        });
+        
+        $('joinGroupModal').classList.remove('active');
+        toast(`¡Te uniste con éxito a "${groupToJoin.name}"!`);
+        const gid = groupToJoin.id;
+        groupToJoin = null;
+        loadGroup(gid);
+      } catch (err) {
+        toast('Error al unirse: ' + err.message);
+      }
+    });
+  });
+
+  async function checkInviteLink() {
+    const params = new URLSearchParams(window.location.search);
+    const inviteId = params.get('invite');
+    if (inviteId) {
+      const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash;
+      window.history.replaceState({path: newUrl}, '', newUrl);
+
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          try {
+            const groupRef = doc(db, 'groups', inviteId);
+            const groupSnap = await getDoc(groupRef);
+            if (groupSnap.exists()) {
+              const g = groupSnap.data();
+              if (!g.members.includes(user.uid)) {
+                openJoinGroupModal(g);
+              } else {
+                loadGroup(inviteId);
+              }
+            } else {
+              toast('El link de invitación ya no es válido.');
+            }
+          } catch (err) {
+            toast('Error al unirse al grupo: ' + err.message);
+          }
+        } else {
+          toast('Por favor iniciá sesión para unirte al grupo.');
+        }
+      });
+    }
+  }
+  checkInviteLink();
+
+  // --- GROUP DETAILS VIEW ---
+  async function loadGroup(gid) {
+    if (activeGroupListener) activeGroupListener(); // Unsubscribe previous
+    if (expensesListener) expensesListener();
+
+    // Reset group-specific state immediately on load to prevent stale data mixing
+    activeGroup = null;
+    expenses = [];
+    
+    // Clear UI inputs and show loading state
+    $('groupNameText').textContent = 'Cargando...';
+    $('groupCodeText').textContent = 'ID de Invitación: -';
+    $('expList').innerHTML = '<p class="empty">Cargando gastos...</p>';
+    $('paymentsList').innerHTML = '<p class="empty">Cargando pagos...</p>';
+    $('chips').innerHTML = '<p class="empty">Cargando...</p>';
+    $('aliasPanel').innerHTML = '<p class="empty">Cargando...</p>';
+    $('pairList').innerHTML = '<p class="empty">Cargando...</p>';
+    $('ruleList').innerHTML = '<p class="empty">Cargando...</p>';
+    $('balancesList').innerHTML = '<p class="empty">Cargando...</p>';
+    $('settlementList').innerHTML = '<div class="settled-note"><span class="big">Cargando...</span></div>';
+    $('totals').innerHTML = '';
+
+    activeGroupId = gid;
+    window.location.hash = `/group/${gid}`;
+    showView('groupDetailsView');
+    
+    // Tab switching resetting
+    switchTab('expensesTab');
+
+    // Subscribe to group updates
+    activeGroupListener = onSnapshot(doc(db, 'groups', gid), (docSnap) => {
+      if (!docSnap.exists()) {
+        toast('El grupo no existe o fue eliminado.');
+        showView('groupsView');
+        return;
+      }
+      activeGroup = docSnap.data();
+      activeGroup.participants = activeGroup.participants || {};
+      activeGroup.couples = (activeGroup.couples || []).map(c => {
+        if (c && typeof c === 'object' && !Array.isArray(c)) {
+          return [String(c.p1), String(c.p2)];
+        } else if (Array.isArray(c)) {
+          return c.map(String);
+        } else if (typeof c === 'string') {
+          return c.split('-');
+        }
+        return c;
+      });
+
+      // Auto-complete default alias for the logged-in user if they are a participant and their alias is empty
+      if (currentUser && currentUserDefaultAlias) {
+        const myPart = Object.values(activeGroup.participants).find(p => String(p.userId) === String(currentUser.uid));
+        if (myPart && !myPart.alias) {
+          myPart.alias = currentUserDefaultAlias;
+          // Update in DB silently
+          updateDoc(doc(db, 'groups', activeGroupId), {
+            participants: activeGroup.participants,
+            updatedAt: serverTimestamp()
+          }).catch(err => console.error("Error auto-updating participant alias:", err));
+        }
+      }
+
+      // Update UI elements
+      $('groupNameText').textContent = activeGroup.name;
+      $('groupCodeText').textContent = `ID de Invitación: ${activeGroup.id}`;
+      $('settlementCurrencyText').textContent = `Liquidar saldos en ${activeGroup.currency} ${flags[activeGroup.currency] || ""}`;
+
+      // Admin & Owner actions
+      const isOwnerOrAdmin = (activeGroup.ownerId === currentUser.uid) || (currentUser.email === 'nicolasescudero5@gmail.com');
+      if (isOwnerOrAdmin) {
+        $('deleteGroupBtn').style.display = 'inline-flex';
+        $('editGroupBtn').style.display = 'inline-flex';
+        $('adminConfigCard').style.display = 'block';
+        $('allowAllToEditCheckbox').checked = (activeGroup.rules && activeGroup.rules.allowAllToEdit) !== false;
+        $('roundValueSelect').value = (activeGroup.rules && activeGroup.rules.roundValue) || "1";
+        $('roundDirectionSelect').value = (activeGroup.rules && activeGroup.rules.roundDirection) || "nearest";
+      } else {
+        $('deleteGroupBtn').style.display = 'none';
+        $('editGroupBtn').style.display = 'none';
+        $('adminConfigCard').style.display = 'none';
+      }
+
+      // Populate Selects
+      renderFormParticipants();
+      renderChips();
+      renderAliasPanel();
+      renderPairsList();
+      renderRulesList();
+      
+      // Compute balances and calculations
+      computeAndRenderBalances();
+    }, (err) => {
+      toast('Error al cargar detalles del grupo: ' + err.message);
+      showView('groupsView');
+    });
+
+    // Reset pagination state and load expenses
+    lastVisibleExpense = null;
+    hasMoreExpenses = true;
+    loadExpenses();
+  }
+
+  // Admin Config Checkbox Change Listener
+  $('allowAllToEditCheckbox').addEventListener('change', async () => {
+    if (!activeGroup || !activeGroupId) return;
+    const checked = $('allowAllToEditCheckbox').checked;
+    try {
+      await updateDoc(doc(db, 'groups', activeGroupId), {
+        'rules.allowAllToEdit': checked,
+        updatedAt: serverTimestamp()
+      });
+      toast(checked ? 'Cualquiera puede cargar en nombre de otros' : 'Carga restringida a transacciones propias');
+    } catch (err) {
+      toast('Error al actualizar permisos: ' + err.message);
+    }
+  });
+
+  $('roundValueSelect').addEventListener('change', async () => {
+    if (!activeGroup || !activeGroupId) return;
+    const value = $('roundValueSelect').value;
+    try {
+      await updateDoc(doc(db, 'groups', activeGroupId), {
+        'rules.roundValue': value,
+        updatedAt: serverTimestamp()
+      });
+      toast('Redondeo actualizado');
+    } catch (err) {
+      toast('Error al actualizar redondeo: ' + err.message);
+    }
+  });
+
+  $('roundDirectionSelect').addEventListener('change', async () => {
+    if (!activeGroup || !activeGroupId) return;
+    const value = $('roundDirectionSelect').value;
+    try {
+      await updateDoc(doc(db, 'groups', activeGroupId), {
+        'rules.roundDirection': value,
+        updatedAt: serverTimestamp()
+      });
+      toast('Dirección de redondeo actualizada');
+    } catch (err) {
+      toast('Error al actualizar dirección de redondeo: ' + err.message);
+    }
+  });
+
+  // Edit Group Modal Actions
+  $('editGroupBtn').addEventListener('click', () => {
+    if (!activeGroup) return;
+    $('editGroupNameInput').value = activeGroup.name;
+    $('editGroupCurrencyInput').value = activeGroup.currency;
+    $('editGroupModal').classList.add('active');
+  });
+
+  $('closeEditGroupBtn').addEventListener('click', () => $('editGroupModal').classList.remove('active'));
+
+  $('submitEditGroupBtn').addEventListener('click', () => {
+    withLoading($('submitEditGroupBtn'), async () => {
+      const newName = $('editGroupNameInput').value.trim();
+      const newCurrency = $('editGroupCurrencyInput').value;
+      if (!newName) { toast('Ingresá el nombre del grupo'); return; }
+
+      try {
+        await updateDoc(doc(db, 'groups', activeGroupId), {
+          name: newName,
+          currency: newCurrency,
+          updatedAt: serverTimestamp()
+        });
+        $('editGroupModal').classList.remove('active');
+        toast('Grupo actualizado con éxito');
+      } catch(err) {
+        toast('Error al actualizar: ' + err.message);
+      }
+    });
+  });
+
+  // Share invite link
+  $('shareGroupBtn').addEventListener('click', async () => {
+    if (!activeGroup) return;
+    const inviteUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?invite=${activeGroup.id}`;
+    const shareData = {
+      title: `Unite a ${activeGroup.name} en Repartijas`,
+      text: `Te invito a dividir los gastos en el grupo "${activeGroup.name}". Entrá al link para unirte:`,
+      url: inviteUrl
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        if (err.name !== 'AbortError') toast('Error al compartir: ' + err.message);
+      }
+    } else {
+      // Fallback clipboard
+      navigator.clipboard.writeText(inviteUrl).then(() => {
+        toast('¡Link de invitación copiado!');
+      }).catch(err => {
+        toast('Error al copiar el link: ' + err.name);
+      });
+    }
+  });
+
+  // Delete group
+  $('deleteGroupBtn').addEventListener('click', async () => {
+    if (!activeGroup || activeGroup.ownerId !== currentUser.uid) return;
+    if (confirm('¿Seguro que querés eliminar permanentemente este grupo y todos sus gastos?')) {
+      try {
+        const expQuery = collection(db, 'groups', activeGroupId, 'expenses');
+        const snaps = await getDocs(expQuery);
+        const batchPromises = snaps.docs.map(d => deleteDoc(d.ref));
+        await Promise.all(batchPromises);
+
+        await deleteDoc(doc(db, 'groups', activeGroupId));
+        toast('Grupo eliminado');
+        if (activeGroupListener) activeGroupListener();
+        if (expensesListener) expensesListener();
+        activeGroupId = null;
+        activeGroup = null;
+        showView('groupsView');
+        window.location.hash = '';
+      } catch (err) {
+        toast('Error al eliminar: ' + err.message);
+      }
+    }
+  });
+
+  // Tab switching
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tabId = btn.getAttribute('data-tab');
+      // Admin page tabs or group details tabs
+      if (tabId === 'adminUsersTab' || tabId === 'adminGroupsTab') {
+        switchAdminTab(tabId);
+      } else {
+        switchTab(tabId);
+      }
+    });
+  });
+
+  function switchTab(tabId) {
+    document.querySelectorAll('#groupDetailsView .tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#groupDetailsView .tab-content').forEach(c => c.classList.remove('active'));
+    
+    document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+    $(tabId).classList.add('active');
+
+    if (tabId === 'reportsTab') {
+      generateAndRenderReports();
+    }
+  }
+
+  function switchAdminTab(tabId) {
+    document.querySelectorAll('#adminView .tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#adminView .tab-content').forEach(c => c.classList.remove('active'));
+    
+    document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+    $(tabId).classList.add('active');
+  }
+
+  // --- MULTI-CURRENCY LOGIC ---
+  $('expCurrency').addEventListener('change', async () => {
+    const currency = $('expCurrency').value;
+    const groupCurrency = activeGroup ? activeGroup.currency : 'ARS';
+    
+    if (currency === groupCurrency) {
+      $('exchangeRateContainer').style.display = 'none';
+      $('expExchangeRate').value = '1';
+    } else {
+      $('exchangeRateContainer').style.display = 'block';
+      $('expExchangeRate').value = 'Cargando...';
+      const rate = await fetchExchangeRate(currency, groupCurrency);
+      $('expExchangeRate').value = rate.toFixed(4);
+    }
+  });
+
+  async function fetchExchangeRate(from, to) {
+    const cacheKey = `${from}_${to}`;
+    if (exchangeRatesCache[cacheKey] && (Date.now() - exchangeRatesCache[cacheKey].time < 3600000)) {
+      return exchangeRatesCache[cacheKey].rate;
+    }
+    
+    try {
+      const res = await fetch(`https://open.er-api.com/v6/latest/${from}`);
+      const data = await res.json();
+      if (data.result === 'success' && data.rates[to]) {
+        const rate = data.rates[to];
+        exchangeRatesCache[cacheKey] = { rate, time: Date.now() };
+        return rate;
+      }
+    } catch (err) {
+      console.error('Error fetching rates API:', err);
+    }
+    return 1.0;
+  }
+
+  // --- PARTICIPANTS TAB LOGIC ---
+  $('addPersonBtn').addEventListener('click', () => {
+    withLoading($('addPersonBtn'), async () => {
+      const name = $('personNameInput').value.trim();
+      if (!name || !activeGroup) return;
+
+      const parts = activeGroup.participants || {};
+      if (Object.values(parts).some(p => p.name.toLowerCase() === name.toLowerCase())) {
+        toast('Ese nombre ya existe');
+        $('personNameInput').value = '';
+        return;
+      }
+
+      let seq = 1;
+      while (parts[String(seq)]) seq++;
+      const newId = String(seq);
+
+      parts[newId] = {
+        id: newId,
+        name: name,
+        paysTo: null,
+        alias: ""
+      };
+
+      try {
+        await updateDoc(doc(db, 'groups', activeGroupId), {
+          participants: parts,
+          updatedAt: serverTimestamp()
+        });
+        $('personNameInput').value = '';
+      } catch(err) {
+        toast('Error al agregar: ' + err.message);
+      }
+    });
+  });
+
+  async function removePerson(pid) {
+    if (!activeGroup) return;
+    
+    const used = expenses.some(e => e.payer === pid || e.split.includes(pid));
+    if (used) {
+      toast('No podés quitar a un participante que tiene gastos asociados.');
+      return;
+    }
+
+    const parts = { ...activeGroup.participants };
+    delete parts[pid];
+
+    const couples = activeGroup.couples.filter(c => !c.includes(pid));
+
+    Object.keys(parts).forEach(k => {
+      if (parts[k].paysTo === pid) parts[k].paysTo = null;
+    });
+
+    try {
+      await updateDoc(doc(db, 'groups', activeGroupId), {
+        participants: parts,
+        couples: couples.map(c => ({ p1: String(c[0]), p2: String(c[1]) })),
+        updatedAt: serverTimestamp()
+      });
+      toast('Participante quitado');
+    } catch(err) {
+      toast('Error al quitar: ' + err.message);
+    }
+  }
+
+  function renderFormParticipants() {
+    if (!activeGroup || !currentUser) return;
+    const pSelectPayer = $('expPayer');
+    const splitGrid = $('splitGrid');
+    const parts = Object.values(activeGroup.participants || {});
+    
+    // Check restrictions
+    const isOwnerOrAdmin = (activeGroup.ownerId === currentUser.uid) || (currentUser.email === 'nicolasescudero5@gmail.com');
+    const allowAllToEdit = activeGroup.rules.allowAllToEdit !== false;
+    
+    let allowedPayerParts = parts;
+    const myParticipant = parts.find(p => String(p.userId) === String(currentUser.uid));
+    
+    if (!isOwnerOrAdmin && !allowAllToEdit) {
+      if (myParticipant) {
+        allowedPayerParts = [myParticipant];
+      } else {
+        allowedPayerParts = [];
+      }
+    }
+    
+    const currentPayer = pSelectPayer.value;
+    if (allowedPayerParts.length === 0) {
+      pSelectPayer.innerHTML = '<option value="">No tenés un participante asignado en el grupo</option>';
+    } else {
+      pSelectPayer.innerHTML = allowedPayerParts.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+    }
+    if (currentPayer && allowedPayerParts.some(p => p.id === currentPayer)) {
+      pSelectPayer.value = currentPayer;
+    }
+
+    const prevChecked = Array.from(splitGrid.querySelectorAll('input:checked')).map(i => i.value);
+    const isAllInitially = prevChecked.length === 0;
+    
+    splitGrid.innerHTML = parts.map(p => {
+      const checked = isAllInitially || prevChecked.includes(p.id) ? 'checked' : '';
+      return `<label class="pchk"><input type="checkbox" value="${p.id}" ${checked}><span class="dot"></span>${esc(p.name.split(' ')[0])}</label>`;
     }).join('');
 
-    if(!r.moves.length){
-      settlementEl.innerHTML='<div class="settled-note"><span class="big">¡Ya están a mano!</span>Nadie le debe nada a nadie.</div>'; movesNote.textContent="";
-    }else{
-      movesNote.textContent=(r.moves.length===1?"Con 1 sola transferencia":"Con "+r.moves.length+" transferencias")+" queda todo saldado"+(state.roundG>=100?" (redondeado).":".");
-      settlementEl.innerHTML=r.moves.map(function(m){
-        return '<div class="pay">'+whoBlock(m.from)+
-          '<span class="arrow"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>'+
-          whoBlock(m.to)+'<span class="sum">'+money(m.cents)+'</span></div>';
+    updateSplitCount();
+  }
+
+  function renderChips() {
+    if (!activeGroup) return;
+    const parts = Object.values(activeGroup.participants || {});
+    if (!parts.length) {
+      chips.innerHTML = '<p class="empty">No hay nadie cargado en el grupo. Agregá al primero arriba.</p>';
+      return;
+    }
+    chips.innerHTML = parts.map(p => {
+      const isLinked = !!p.userId;
+      const linkedBadge = isLinked ? `<span style="font-size:0.75rem; opacity:0.7;" title="Usuario vinculado">👤</span>` : '';
+      return `
+        <span class="chip">
+          <span class="avatar" style="background:${colorFor(p.id)}">${initials(p.name)}</span>
+          ${esc(p.name)} ${linkedBadge}
+          <button title="Quitar" class="remove-chip-btn" data-pid="${p.id}">&times;</button>
+        </span>
+      `;
+    }).join('');
+
+    chips.querySelectorAll('.remove-chip-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const pid = btn.getAttribute('data-pid');
+        removePerson(pid);
+      });
+    });
+  }
+
+  async function linkParticipantToUser(pid) {
+    if (!activeGroup || !currentUser) return;
+    
+    // Get user profile data (specifically name and defaultAlias)
+    const userSnap = await getDoc(doc(db, 'users', currentUser.uid));
+    const uData = userSnap.exists() ? userSnap.data() : {};
+    const userName = uData.nickname || uData.name || currentUser.displayName || currentUser.email.split('@')[0];
+    const userAlias = uData.defaultAlias || '';
+
+    const parts = { ...activeGroup.participants };
+    if (parts[pid]) {
+      const oldName = parts[pid].name;
+      parts[pid].name = userName;
+      parts[pid].userId = currentUser.uid;
+      if (userAlias) {
+        parts[pid].alias = userAlias;
+      }
+      
+      try {
+        await updateDoc(doc(db, 'groups', activeGroupId), {
+          participants: parts,
+          updatedAt: serverTimestamp()
+        });
+        toast(`Te vinculaste con éxito. Se actualizó el nombre de "${oldName}" a "${userName}".`);
+      } catch (err) {
+        toast('Error al vincular: ' + err.message);
+      }
+    }
+  }
+
+  function renderAliasPanel() {
+    if (!activeGroup) return;
+    const parts = Object.values(activeGroup.participants || {});
+    const container = $('aliasPanel');
+    
+    if (!parts.length) {
+      container.innerHTML = '<p class="hint">Cuando agregues participantes, acá vas a poder poner el alias de transferencia de cada uno.</p>';
+      return;
+    }
+
+    const activeEl = document.activeElement;
+    const focusedPid = activeEl && activeEl.classList.contains('alias-input') ? activeEl.getAttribute('data-pid') : null;
+    const focusedValue = focusedPid ? activeEl.value : null;
+
+    const currentUserParticipant = currentUser ? parts.find(p => String(p.userId) === String(currentUser.uid)) : null;
+    const isLinkedToAny = !!currentUserParticipant;
+
+    container.innerHTML = parts.map(p => {
+      const isMe = currentUser && String(p.userId) === String(currentUser.uid);
+      const isLinked = !!p.userId;
+      
+      let linkButton = '';
+      if (isMe) {
+        linkButton = `<span class="premium-tag" style="font-size: 0.65rem; padding: 2px 6px; margin: 0 0 0 5px; background: var(--primary-soft); color: var(--primary-deep);">Tú</span>`;
+      } else if (!isLinked && !isLinkedToAny) {
+        linkButton = `<button class="btn btn-soft action-btn-sm claim-identity-btn" data-pid="${p.id}" style="padding: 2px 6px; margin-left: 5px; font-size: 0.7rem; justify-content:center;">Soy yo</button>`;
+      } else if (isLinked) {
+        linkButton = `<span style="font-size: 0.7rem; color: var(--muted); margin-left: 5px;" title="Vinculado a otro usuario">👤</span>`;
+      }
+
+      const val = p.id === focusedPid ? focusedValue : (p.alias || '');
+
+      return `
+        <div class="alias-row">
+          <span class="avatar" style="background:${colorFor(p.id)}">${initials(p.name)}</span>
+          <span class="nm">${esc(p.name.split(' ')[0])} ${linkButton}</span>
+          <input type="text" class="alias-input" data-pid="${p.id}" value="${esc(val)}" placeholder="alias / CBU / CVU">
+        </div>
+      `;
+    }).join('');
+
+    // Restore focus if it was lost
+    if (focusedPid) {
+      const inputToFocus = container.querySelector(`input[data-pid="${focusedPid}"]`);
+      if (inputToFocus) {
+        inputToFocus.focus();
+        const valLen = inputToFocus.value.length;
+        inputToFocus.setSelectionRange(valLen, valLen);
+      }
+    }
+
+    container.querySelectorAll('.claim-identity-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const pid = btn.getAttribute('data-pid');
+        if (confirm(`¿Seguro que querés vincularte como "${activeGroup.participants[pid].name}"? Tu nombre se actualizará en el grupo.`)) {
+          await linkParticipantToUser(pid);
+        }
+      });
+    });
+
+    container.querySelectorAll('.alias-input').forEach(input => {
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          input.blur();
+        }
+      });
+
+      input.addEventListener('change', async (e) => {
+        const pid = input.getAttribute('data-pid');
+        const val = input.value.trim();
+        const parts = { ...activeGroup.participants };
+        if (parts[pid]) {
+          parts[pid].alias = val;
+          await updateDoc(doc(db, 'groups', activeGroupId), {
+            participants: parts,
+            updatedAt: serverTimestamp()
+          });
+
+          // Sync default profile alias if it's the current user
+          if (currentUser && String(parts[pid].userId) === String(currentUser.uid)) {
+            currentUserDefaultAlias = val;
+            await setDoc(doc(db, 'users', currentUser.uid), {
+              defaultAlias: val
+            }, { merge: true });
+          }
+        }
+      });
+    });
+  }
+
+  function renderPairsList() {
+    if (!activeGroup) return;
+    const pairA = $('pairA');
+    const pairB = $('pairB');
+    fillSelectPair(pairA); fillSelectPair(pairB);
+
+    $('pairList').innerHTML = activeGroup.couples.length ? activeGroup.couples.map((c, i) => `
+      <span class="pair">
+        ${esc(firstName(String(c[0])))} &amp; ${esc(firstName(String(c[1])))}
+        <button class="x rm-pair-btn" data-index="${i}">&times;</button>
+      </span>
+    `).join('') : '<p class="hint">Sin parejas: cada uno paga por su cuenta.</p>';
+
+    $('pairList').querySelectorAll('.rm-pair-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const idx = parseInt(btn.getAttribute('data-index'));
+        const couples = [...activeGroup.couples];
+        couples.splice(idx, 1);
+        await updateDoc(doc(db, 'groups', activeGroupId), {
+          couples: couples.map(c => ({ p1: String(c[0]), p2: String(c[1]) })),
+          updatedAt: serverTimestamp()
+        });
+      });
+    });
+  }
+
+  function fillSelectPair(sel) {
+    if (!activeGroup) return;
+    const parts = Object.values(activeGroup.participants || {});
+    const busyIds = activeGroup.couples.flat().map(String);
+    sel.innerHTML = '<option value="">Persona...</option>' + parts
+      .map(p => {
+        const disabled = busyIds.includes(String(p.id)) ? 'disabled' : '';
+        return `<option value="${p.id}" ${disabled}>${esc(p.name)}</option>`;
+      }).join('');
+  }
+
+  $('addPairBtn').addEventListener('click', () => {
+    withLoading($('addPairBtn'), async () => {
+      const a = $('pairA').value, b = $('pairB').value;
+      if (!a || !b || a === b) return;
+      
+      const couples = [...activeGroup.couples, [a, b]];
+      try {
+        await updateDoc(doc(db, 'groups', activeGroupId), {
+          couples: couples.map(c => ({ p1: String(c[0]), p2: String(c[1]) })),
+          updatedAt: serverTimestamp()
+        });
+        $('pairA').value = '';
+        $('pairB').value = '';
+      } catch(err) {
+        toast('Error al unir pareja: ' + err.message);
+      }
+    });
+  });
+
+  function renderRulesList() {
+    if (!activeGroup) return;
+    const ruleP = $('ruleP');
+    const ruleT = $('ruleT');
+    const parts = Object.values(activeGroup.participants || {});
+
+    ruleP.innerHTML = '<option value="">Persona...</option>' + parts.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+    
+    const pSelected = ruleP.value;
+    ruleT.innerHTML = '<option value="">...le paga a</option>' + parts
+      .filter(p => String(p.id) !== String(pSelected))
+      .map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+
+    const ruledPeople = parts.filter(p => p.paysTo);
+    $('ruleList').innerHTML = ruledPeople.length ? ruledPeople.map(p => `
+      <span class="rule">
+        ${esc(firstName(String(p.id)))} <span class="arrow">&rarr;</span> ${esc(firstName(String(p.paysTo)))}
+        <button class="x rm-rule-btn" data-pid="${p.id}">&times;</button>
+      </span>
+    `).join('') : '<p class="hint">Sin reglas: todos pueden pagarle a cualquiera.</p>';
+
+    $('ruleList').querySelectorAll('.rm-rule-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const pid = btn.getAttribute('data-pid');
+        const parts = { ...activeGroup.participants };
+        if (parts[pid]) {
+          parts[pid].paysTo = null;
+          await updateDoc(doc(db, 'groups', activeGroupId), {
+            participants: parts,
+            updatedAt: serverTimestamp()
+          });
+        }
+      });
+    });
+  }
+
+  $('ruleP').addEventListener('change', () => {
+    if (!activeGroup) return;
+    const parts = Object.values(activeGroup.participants || {});
+    const pSelected = $('ruleP').value;
+    $('ruleT').innerHTML = '<option value="">...le paga a</option>' + parts
+      .filter(p => String(p.id) !== String(pSelected))
+      .map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  });
+
+  $('addRuleBtn').addEventListener('click', () => {
+    withLoading($('addRuleBtn'), async () => {
+      const p = $('ruleP').value, t = $('ruleT').value;
+      if (!p || !t || p === t) return;
+
+      const parts = { ...activeGroup.participants };
+      if (parts[p]) {
+        parts[p].paysTo = t;
+        try {
+          await updateDoc(doc(db, 'groups', activeGroupId), {
+            participants: parts,
+            updatedAt: serverTimestamp()
+          });
+          $('ruleP').value = '';
+          $('ruleT').value = '';
+        } catch(err) {
+          toast('Error al guardar regla: ' + err.message);
+        }
+      }
+    });
+  });
+
+  function colorFor(pid) {
+    if (!activeGroup || !activeGroup.participants) return '#5C8374';
+    const parts = Object.keys(activeGroup.participants || {}).sort();
+    const idx = parts.indexOf(String(pid));
+    const PALETTE = ["#5C8374","#C07A68","#7B9EA8","#B08968","#8A9B6E","#9C7CA5","#6B8E9E","#C0986B","#86A079","#B07C8E"];
+    return PALETTE[(idx < 0 ? 0 : idx) % PALETTE.length];
+  }
+  function firstName(pid) {
+    if (!activeGroup || !activeGroup.participants || !activeGroup.participants[String(pid)]) return "?";
+    return activeGroup.participants[String(pid)].name.split(' ')[0];
+  }
+
+  // --- EXPENSES DB LOGIC ---
+  async function loadExpenses() {
+    if (!activeGroupId) return;
+
+    let q = query(
+      collection(db, 'groups', activeGroupId, 'expenses'),
+      orderBy('createdAt', 'desc')
+    );
+
+    expensesListener = onSnapshot(q, (snapshot) => {
+      expenses = snapshot.docs.map(doc => doc.data());
+      renderExpenses();
+      renderPayments();
+      renderAliasPanel();
+      computeAndRenderBalances();
+      if ($('reportsTab').classList.contains('active')) {
+        generateAndRenderReports();
+      }
+    }, (err) => {
+      toast('Error al cargar transacciones: ' + err.message);
+    });
+  }
+
+  // Open and close add expense modal logic
+  function openAddExpenseModal() {
+    if (!activeGroup) return;
+    
+    // Reset inputs
+    $('expDesc').value = '';
+    $('expAmount').value = '';
+    
+    $('expCurrency').value = activeGroup.currency;
+    $('expCurrency').dispatchEvent(new Event('change'));
+    
+    renderFormParticipants();
+    
+    $('addExpenseModal').classList.add('active');
+  }
+
+  $('closeAddExpenseBtn').addEventListener('click', () => {
+    $('addExpenseModal').classList.remove('active');
+  });
+
+  // Add Expense
+  $('submitAddExpenseBtn').addEventListener('click', () => {
+    withLoading($('submitAddExpenseBtn'), async () => {
+      const desc = $('expDesc').value.trim() || 'Gasto';
+      const amount = parseFloat($('expAmount').value);
+      const currency = $('expCurrency').value;
+      const rate = parseFloat($('expExchangeRate').value);
+      const payer = $('expPayer').value;
+      const split = Array.from($('splitGrid').querySelectorAll('input:checked')).map(i => i.value);
+
+      if (isNaN(amount) || amount <= 0) { toast('Ingresá un monto válido'); throw new Error('Invalid amount'); }
+      if (isNaN(rate) || rate <= 0) { toast('Ingresá un tipo de cambio válido'); throw new Error('Invalid rate'); }
+      if (!payer) { toast('Seleccioná quién pagó'); throw new Error('No payer'); }
+      if (!split.length) { toast('Seleccioná al menos un participante'); throw new Error('No split'); }
+
+      const category = $('expCategory').value || 'Otros';
+      const finalCents = Math.round(amount * rate * 100);
+
+      try {
+        const expenseRef = doc(collection(db, 'groups', activeGroupId, 'expenses'));
+        const newExp = {
+          id: expenseRef.id,
+          desc: desc,
+          amount: amount,
+          currency: currency,
+          exchangeRate: rate,
+          cents: finalCents,
+          payer: payer,
+          split: split,
+          category: category,
+          createdAt: serverTimestamp(),
+          createdBy: currentUser.uid
+        };
+        await setDoc(expenseRef, newExp);
+        
+        $('addExpenseModal').classList.remove('active');
+        toast('Gasto agregado');
+      } catch(err) {
+        toast('Error al guardar gasto: ' + err.message);
+        throw err;
+      }
+    });
+  });
+
+  async function deleteExpense(expId) {
+    if (confirm('¿Seguro que querés borrar esta transacción?')) {
+      try {
+        await deleteDoc(doc(db, 'groups', activeGroupId, 'expenses', expId));
+        toast('Transacción eliminada');
+      } catch (err) {
+        toast('Error al eliminar: ' + err.message);
+      }
+    }
+  }
+
+  // --- EDIT EXPENSES & PAYMENTS LOGIC ---
+  function getEditSelectedSplit() {
+    return Array.from($('editSplitGrid').querySelectorAll('input:checked')).map(i => i.value);
+  }
+
+  function updateEditSplitCount() {
+    if (!activeGroup) return;
+    const n = getEditSelectedSplit().length;
+    const t = Object.keys(activeGroup.participants || {}).length;
+    $('editSplitCount').textContent = (n === t && t > 0) ? "Todos" : (n === 0 ? "Nadie seleccionado" : `${n} de ${t}`);
+    $('editToggleAllBtn').textContent = (n === t) ? "Ninguno" : "Todos";
+  }
+
+  // Bind edit split list selection events
+  $('editSplitGrid').addEventListener('change', (e) => {
+    if (e.target.closest('input')) {
+      updateEditSplitCount();
+    }
+  });
+
+  $('editToggleAllBtn').addEventListener('click', () => {
+    if (!activeGroup) return;
+    const t = Object.keys(activeGroup.participants || {}).length;
+    const all = getEditSelectedSplit().length === t;
+    $('editSplitGrid').querySelectorAll('input').forEach(i => {
+      i.checked = !all;
+    });
+    updateEditSplitCount();
+  });
+
+  async function openEditExpenseModal(expId) {
+    if (!activeGroup) return;
+    const exp = expenses.find(e => e.id === expId);
+    if (!exp) return;
+
+    $('editExpId').value = exp.id;
+    $('editExpDesc').value = exp.desc || '';
+    $('editExpAmount').value = exp.amount;
+    $('editExpCurrency').value = exp.currency;
+    $('editExpCategory').value = exp.category || 'Otros';
+    $('editExpExchangeRate').value = exp.exchangeRate;
+
+    // Trigger currency exchange rate container visibility
+    const groupCurrency = activeGroup.currency;
+    if (exp.currency === groupCurrency) {
+      $('editExchangeRateContainer').style.display = 'none';
+    } else {
+      $('editExchangeRateContainer').style.display = 'block';
+    }
+
+    // Populate Payer dropdown
+    const parts = Object.values(activeGroup.participants || {});
+    const pSelectPayer = $('editExpPayer');
+    const isOwnerOrAdmin = (activeGroup.ownerId === currentUser.uid) || (currentUser.email === 'nicolasescudero5@gmail.com');
+    const allowAllToEdit = activeGroup.rules.allowAllToEdit !== false;
+
+    let allowedPayerParts = parts;
+    const myParticipant = parts.find(p => String(p.userId) === String(currentUser.uid));
+    if (!isOwnerOrAdmin && !allowAllToEdit) {
+      if (myParticipant) {
+        allowedPayerParts = [myParticipant];
+      } else {
+        allowedPayerParts = [];
+      }
+    }
+
+    if (allowedPayerParts.length === 0) {
+      pSelectPayer.innerHTML = '<option value="">No tenés un participante asignado en el grupo</option>';
+    } else {
+      pSelectPayer.innerHTML = allowedPayerParts.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+    }
+    pSelectPayer.value = exp.payer;
+
+    // Populate Split checkboxes
+    const splitGrid = $('editSplitGrid');
+    const prevChecked = exp.split || [];
+    splitGrid.innerHTML = parts.map(p => {
+      const checked = prevChecked.includes(p.id) ? 'checked' : '';
+      return `<label class="pchk"><input type="checkbox" value="${p.id}" ${checked}><span class="dot"></span>${esc(p.name.split(' ')[0])}</label>`;
+    }).join('');
+
+    updateEditSplitCount();
+
+    $('editExpenseModal').classList.add('active');
+  }
+
+  $('closeEditExpenseBtn').addEventListener('click', () => {
+    $('editExpenseModal').classList.remove('active');
+  });
+
+  $('editExpCurrency').addEventListener('change', async () => {
+    const currency = $('editExpCurrency').value;
+    const groupCurrency = activeGroup ? activeGroup.currency : 'ARS';
+    
+    if (currency === groupCurrency) {
+      $('editExchangeRateContainer').style.display = 'none';
+      $('editExpExchangeRate').value = '1';
+    } else {
+      $('editExchangeRateContainer').style.display = 'block';
+      $('editExpExchangeRate').value = 'Cargando...';
+      const rate = await fetchExchangeRate(currency, groupCurrency);
+      $('editExpExchangeRate').value = rate.toFixed(4);
+    }
+  });
+
+  // Submit edit expense
+  $('submitUpdateExpenseBtn').addEventListener('click', () => {
+    withLoading($('submitUpdateExpenseBtn'), async () => {
+      const expId = $('editExpId').value;
+      const desc = $('editExpDesc').value.trim() || 'Gasto';
+      const amount = parseFloat($('editExpAmount').value);
+      const currency = $('editExpCurrency').value;
+      const rate = parseFloat($('editExpExchangeRate').value);
+      const payer = $('editExpPayer').value;
+      const category = $('editExpCategory').value || 'Otros';
+      const split = getEditSelectedSplit();
+
+      if (isNaN(amount) || amount <= 0) { toast('Ingresá un monto válido'); throw new Error('Invalid amount'); }
+      if (isNaN(rate) || rate <= 0) { toast('Ingresá un tipo de cambio válido'); throw new Error('Invalid rate'); }
+      if (!payer) { toast('Seleccioná quién pagó'); throw new Error('No payer'); }
+      if (!split.length) { toast('Seleccioná al menos un participante'); throw new Error('No split'); }
+
+      const finalCents = Math.round(amount * rate * 100);
+
+      try {
+        const expenseRef = doc(db, 'groups', activeGroupId, 'expenses', expId);
+        
+        // Preserve original fields to pass Firebase rules
+        const originalExp = expenses.find(e => e.id === expId);
+        if (!originalExp) {
+          throw new Error("No se encontró el gasto original en el caché");
+        }
+
+        const updatedExp = {
+          id: expId,
+          desc: desc,
+          amount: amount,
+          currency: currency,
+          exchangeRate: rate,
+          cents: finalCents,
+          payer: payer,
+          split: split,
+          category: category,
+          createdAt: originalExp.createdAt, // Preserve original date
+          createdBy: originalExp.createdBy  // Preserve original creator
+        };
+        await setDoc(expenseRef, updatedExp);
+        
+        $('editExpenseModal').classList.remove('active');
+        toast('Gasto modificado con éxito');
+      } catch(err) {
+        toast('Error al guardar cambios: ' + err.message);
+        throw err;
+      }
+    });
+  });
+
+  // Edit Payment Modal Setup
+  function openEditPaymentModal(payId) {
+    if (!activeGroup) return;
+    const pay = expenses.find(e => e.id === payId);
+    if (!pay) return;
+
+    $('editPayId').value = pay.id;
+    $('editPayAmount').value = pay.amount;
+    $('editPayCurrency').value = pay.currency;
+    $('editPayExchangeRate').value = pay.exchangeRate;
+
+    // Trigger currency exchange rate container visibility
+    const groupCurrency = activeGroup.currency;
+    if (pay.currency === groupCurrency) {
+      $('editPayExchangeRateContainer').style.display = 'none';
+    } else {
+      $('editPayExchangeRateContainer').style.display = 'block';
+    }
+
+    const payPayer = $('editPayPayer');
+    const payReceiver = $('editPayReceiver');
+    const parts = Object.values(activeGroup.participants || {});
+    
+    const isOwnerOrAdmin = (activeGroup.ownerId === currentUser.uid) || (currentUser.email === 'nicolasescudero5@gmail.com');
+    const allowAllToEdit = activeGroup.rules.allowAllToEdit !== false;
+    const myParticipant = parts.find(p => String(p.userId) === String(currentUser.uid));
+    
+    let allowedDebtors = parts;
+    if (!isOwnerOrAdmin && !allowAllToEdit) {
+      if (myParticipant) {
+        allowedDebtors = [myParticipant];
+      } else {
+        allowedDebtors = [];
+      }
+    }
+    
+    if (allowedDebtors.length === 0) {
+      payPayer.innerHTML = '<option value="">No tenés un participante asignado</option>';
+    } else {
+      payPayer.innerHTML = allowedDebtors.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+    }
+    payPayer.value = pay.payer;
+
+    const allowedCreditors = parts.filter(p => p.id !== pay.payer);
+    payReceiver.innerHTML = allowedCreditors.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+    payReceiver.value = pay.split[0];
+
+    $('editPaymentModal').classList.add('active');
+  }
+
+  $('closeEditPaymentBtn').addEventListener('click', () => {
+    $('editPaymentModal').classList.remove('active');
+  });
+
+  $('editPayCurrency').addEventListener('change', async () => {
+    const currency = $('editPayCurrency').value;
+    const groupCurrency = activeGroup ? activeGroup.currency : 'ARS';
+    
+    if (currency === groupCurrency) {
+      $('editPayExchangeRateContainer').style.display = 'none';
+      $('editPayExchangeRate').value = '1';
+    } else {
+      $('editPayExchangeRateContainer').style.display = 'block';
+      $('editPayExchangeRate').value = 'Cargando...';
+      const rate = await fetchExchangeRate(currency, groupCurrency);
+      $('editPayExchangeRate').value = rate.toFixed(4);
+    }
+  });
+
+  $('editPayPayer').addEventListener('change', () => {
+    if (!activeGroup) return;
+    const payReceiver = $('editPayReceiver');
+    const parts = Object.values(activeGroup.participants || {});
+    const curPayerId = $('editPayPayer').value;
+    const allowedCreditors = parts.filter(p => p.id !== curPayerId);
+    
+    const curReceiver = payReceiver.value;
+    payReceiver.innerHTML = allowedCreditors.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+    if (curReceiver && allowedCreditors.some(p => p.id === curReceiver)) {
+      payReceiver.value = curReceiver;
+    }
+  });
+
+  // Submit edit payment
+  $('submitUpdatePaymentBtn').addEventListener('click', () => {
+    withLoading($('submitUpdatePaymentBtn'), async () => {
+      const payId = $('editPayId').value;
+      const amount = parseFloat($('editPayAmount').value);
+      const currency = $('editPayCurrency').value;
+      const rate = parseFloat($('editPayExchangeRate').value);
+      const payer = $('editPayPayer').value;
+      const receiver = $('editPayReceiver').value;
+
+      if (isNaN(amount) || amount <= 0) { toast('Ingresá un monto válido'); throw new Error('Invalid amount'); }
+      if (isNaN(rate) || rate <= 0) { toast('Ingresá un tipo de cambio válido'); throw new Error('Invalid rate'); }
+      if (!payer) { toast('Seleccioná quién paga'); throw new Error('No payer'); }
+      if (!receiver) { toast('Seleccioná quién recibe'); throw new Error('No receiver'); }
+      if (payer === receiver) { toast('El deudor y acreedor no pueden ser iguales'); throw new Error('Same payer and receiver'); }
+
+      const finalCents = Math.round(amount * rate * 100);
+
+      try {
+        const expenseRef = doc(db, 'groups', activeGroupId, 'expenses', payId);
+        
+        // Preserve original fields to pass Firebase rules
+        const originalPay = expenses.find(e => e.id === payId);
+        if (!originalPay) {
+          throw new Error("No se encontró el pago original en el caché");
+        }
+
+        const updatedPay = {
+          id: payId,
+          desc: 'Transferencia recibida',
+          amount: amount,
+          currency: currency,
+          exchangeRate: rate,
+          cents: finalCents,
+          payer: payer,
+          split: [receiver],
+          isPayment: true,
+          createdAt: originalPay.createdAt, // Preserve original date
+          createdBy: originalPay.createdBy  // Preserve original creator
+        };
+        await setDoc(expenseRef, updatedPay);
+        
+        $('editPaymentModal').classList.remove('active');
+        toast('Pago modificado con éxito');
+      } catch(err) {
+        toast('Error al guardar cambios: ' + err.message);
+        throw err;
+      }
+    });
+  });
+
+  function renderExpenses() {
+    if (!activeGroup) return;
+    const container = $('expList');
+    const filteredExpenses = expenses.filter(e => e.isPayment !== true);
+    
+    if (!filteredExpenses.length) {
+      container.innerHTML = '<p class="empty">No hay gastos en este grupo.</p>';
+      return;
+    }
+
+    container.innerHTML = filteredExpenses.map(e => {
+      const payerName = firstName(e.payer);
+      const splitNames = e.split.map(firstName).join(', ');
+      
+      const rateText = e.exchangeRate !== 1 
+        ? `<span class="currency-badge">${e.amount.toFixed(2)} ${e.currency} (tipo: ${e.exchangeRate})</span>`
+        : '';
+
+      const categoryText = e.category ? `<span class="currency-badge" style="background:var(--primary-tint); color:var(--primary-deep); font-weight:600;">${esc(e.category)}</span>` : '';
+
+      const groupCurrency = activeGroup ? activeGroup.currency : 'ARS';
+      const formattedCents = getMoneyFormatter(groupCurrency).format(e.cents / 100);
+
+      return `
+        <div class="exp">
+          <div class="body">
+            <div class="desc">${esc(e.desc)} ${rateText} ${categoryText}</div>
+            <div class="meta">Pagó <b>${esc(payerName)}</b> · entre ${esc(splitNames)}</div>
+          </div>
+          <div class="amt">${formattedCents}</div>
+          <button class="del edit-exp-btn" data-eid="${e.id}" title="Editar" style="margin-right: 5px;">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4Z"/></svg>
+          </button>
+          <button class="del delete-exp-btn" data-eid="${e.id}" title="Eliminar">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m5 0V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2"/></svg>
+          </button>
+        </div>
+      `;
+    }).join('');
+
+    container.querySelectorAll('.edit-exp-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const eid = btn.getAttribute('data-eid');
+        openEditExpenseModal(eid);
+      });
+    });
+
+    container.querySelectorAll('.delete-exp-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const eid = btn.getAttribute('data-eid');
+        deleteExpense(eid);
+      });
+    });
+  }
+
+  function renderPayments() {
+    if (!activeGroup) return;
+    const container = $('paymentsList');
+    const payments = expenses.filter(e => e.isPayment === true);
+    
+    if (!payments.length) {
+      container.innerHTML = '<p class="empty">No hay pagos registrados en este grupo.</p>';
+      return;
+    }
+
+    container.innerHTML = payments.map(p => {
+      const payerName = firstName(p.payer);
+      const receiverName = firstName(p.split[0]);
+      
+      const rateText = p.exchangeRate !== 1 
+        ? `<span class="currency-badge">${p.amount.toFixed(2)} ${p.currency} (tipo: ${p.exchangeRate})</span>`
+        : '';
+
+      const groupCurrency = activeGroup ? activeGroup.currency : 'ARS';
+      const formattedCents = getMoneyFormatter(groupCurrency).format(p.cents / 100);
+
+      return `
+        <div class="exp" style="border-left: 4px solid var(--primary);">
+          <div class="body">
+            <div class="desc">${esc(p.desc)} ${rateText}</div>
+            <div class="meta"><b>${esc(payerName)}</b> pagó a <b>${esc(receiverName)}</b></div>
+          </div>
+          <div class="amt" style="color: var(--primary-deep); font-weight: 600;">${formattedCents}</div>
+          <button class="del edit-pay-btn" data-eid="${p.id}" title="Editar" style="margin-right: 5px;">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4Z"/></svg>
+          </button>
+          <button class="del delete-pay-btn" data-eid="${p.id}" title="Eliminar">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m5 0V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2"/></svg>
+          </button>
+        </div>
+      `;
+    }).join('');
+
+    container.querySelectorAll('.edit-pay-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const eid = btn.getAttribute('data-eid');
+        openEditPaymentModal(eid);
+      });
+    });
+
+    container.querySelectorAll('.delete-pay-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const eid = btn.getAttribute('data-eid');
+        deleteExpense(eid);
+      });
+    });
+  }
+
+  // --- PAYMENTS REGISTRATION MODAL LISTENERS ---
+  $('selectAddExpenseBtn').addEventListener('click', () => {
+    $('expenseOrPaymentModal').classList.remove('active');
+    openAddExpenseModal();
+  });
+
+  $('selectAddPaymentBtn').addEventListener('click', () => {
+    $('expenseOrPaymentModal').classList.remove('active');
+    openAddPaymentModal();
+  });
+
+  $('closeExpenseOrPaymentBtn').addEventListener('click', () => {
+    $('expenseOrPaymentModal').classList.remove('active');
+  });
+
+  function openAddPaymentModal() {
+    if (!activeGroup) return;
+    
+    // Reset inputs
+    $('payAmount').value = '';
+    $('payCurrency').value = activeGroup.currency;
+    $('payCurrency').dispatchEvent(new Event('change'));
+    
+    renderPaymentFormParticipants();
+    
+    $('addPaymentModal').classList.add('active');
+  }
+
+  $('closeAddPaymentBtn').addEventListener('click', () => {
+    $('addPaymentModal').classList.remove('active');
+  });
+
+  $('payCurrency').addEventListener('change', async () => {
+    const currency = $('payCurrency').value;
+    const groupCurrency = activeGroup ? activeGroup.currency : 'ARS';
+    
+    if (currency === groupCurrency) {
+      $('payExchangeRateContainer').style.display = 'none';
+      $('payExchangeRate').value = '1';
+    } else {
+      $('payExchangeRateContainer').style.display = 'block';
+      $('payExchangeRate').value = 'Cargando...';
+      const rate = await fetchExchangeRate(currency, groupCurrency);
+      $('payExchangeRate').value = rate.toFixed(4);
+    }
+  });
+
+  function renderPaymentFormParticipants() {
+    if (!activeGroup || !currentUser) return;
+    const payPayer = $('payPayer');
+    const payReceiver = $('payReceiver');
+    const parts = Object.values(activeGroup.participants || {});
+    
+    const isOwnerOrAdmin = (activeGroup.ownerId === currentUser.uid) || (currentUser.email === 'nicolasescudero5@gmail.com');
+    const allowAllToEdit = activeGroup.rules.allowAllToEdit !== false;
+    
+    const myParticipant = parts.find(p => String(p.userId) === String(currentUser.uid));
+    
+    let allowedDebtors = parts;
+    if (!isOwnerOrAdmin && !allowAllToEdit) {
+      if (myParticipant) {
+        allowedDebtors = [myParticipant];
+      } else {
+        allowedDebtors = [];
+      }
+    }
+    
+    const curPayer = payPayer.value;
+    if (allowedDebtors.length === 0) {
+      payPayer.innerHTML = '<option value="">No tenés un participante asignado</option>';
+    } else {
+      payPayer.innerHTML = allowedDebtors.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+    }
+    if (curPayer && allowedDebtors.some(p => p.id === curPayer)) {
+      payPayer.value = curPayer;
+    }
+
+    const curPayerId = payPayer.value;
+    const allowedCreditors = parts.filter(p => p.id !== curPayerId);
+    
+    const curReceiver = payReceiver.value;
+    payReceiver.innerHTML = allowedCreditors.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+    if (curReceiver && allowedCreditors.some(p => p.id === curReceiver)) {
+      payReceiver.value = curReceiver;
+    }
+  }
+
+  $('payPayer').addEventListener('change', () => {
+    if (!activeGroup) return;
+    const payReceiver = $('payReceiver');
+    const parts = Object.values(activeGroup.participants || {});
+    const curPayerId = $('payPayer').value;
+    const allowedCreditors = parts.filter(p => p.id !== curPayerId);
+    
+    const curReceiver = payReceiver.value;
+    payReceiver.innerHTML = allowedCreditors.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+    if (curReceiver && allowedCreditors.some(p => p.id === curReceiver)) {
+      payReceiver.value = curReceiver;
+    }
+  });
+
+  $('submitAddPaymentBtn').addEventListener('click', () => {
+    withLoading($('submitAddPaymentBtn'), async () => {
+      const amount = parseFloat($('payAmount').value);
+      const currency = $('payCurrency').value;
+      const rate = parseFloat($('payExchangeRate').value);
+      const payer = $('payPayer').value;
+      const receiver = $('payReceiver').value;
+
+      if (isNaN(amount) || amount <= 0) { toast('Ingresá un monto válido'); throw new Error('Invalid amount'); }
+      if (isNaN(rate) || rate <= 0) { toast('Ingresá un tipo de cambio válido'); throw new Error('Invalid rate'); }
+      if (!payer) { toast('Seleccioná quién paga'); throw new Error('No payer'); }
+      if (!receiver) { toast('Seleccioná quién recibe'); throw new Error('No receiver'); }
+      if (payer === receiver) { toast('El deudor y acreedor no pueden ser iguales'); throw new Error('Same payer and receiver'); }
+
+      const finalCents = Math.round(amount * rate * 100);
+
+      try {
+        const expenseRef = doc(collection(db, 'groups', activeGroupId, 'expenses'));
+        const newExp = {
+          id: expenseRef.id,
+          desc: 'Transferencia recibida',
+          amount: amount,
+          currency: currency,
+          exchangeRate: rate,
+          cents: finalCents,
+          payer: payer,
+          split: [receiver],
+          isPayment: true,
+          createdAt: serverTimestamp(),
+          createdBy: currentUser.uid
+        };
+        await setDoc(expenseRef, newExp);
+        
+        $('addPaymentModal').classList.remove('active');
+        toast('Pago registrado con éxito');
+      } catch(err) {
+        toast('Error al guardar pago: ' + err.message);
+        throw err;
+      }
+    });
+  });
+
+  // --- SETTLEMENT COMPUTATION LOGIC ---
+  function roundUnits(centsValue, roundVal, direction) {
+    if (!roundVal || roundVal === '1') return centsValue;
+    const factor = parseInt(roundVal, 10);
+    if (isNaN(factor) || factor <= 0) return centsValue;
+    
+    const factorInCents = factor * 100;
+    
+    let result;
+    if (direction === 'up') {
+      result = Math.ceil(centsValue / factorInCents) * factorInCents;
+    } else if (direction === 'down') {
+      result = Math.floor(centsValue / factorInCents) * factorInCents;
+    } else { // 'nearest'
+      result = Math.round(centsValue / factorInCents) * factorInCents;
+    }
+    return result;
+  }
+
+  function computeAndRenderBalances() {
+    if (!activeGroup) return;
+    const parts = Object.values(activeGroup.participants || {});
+    if (parts.length < 2 || !expenses.length) {
+      $('totals').innerHTML = '';
+      $('balancesList').innerHTML = '<p class="empty">Se necesitan al menos 2 participantes y 1 gasto para calcular saldos.</p>';
+      $('settlementList').innerHTML = '<div class="settled-note"><span class="big">¡Todo saldado!</span>Cargá un gasto para comenzar.</div>';
+      $('movesNote').textContent = '';
+      return;
+    }
+
+    const bal = {};
+    parts.forEach(p => bal[String(p.id)] = 0);
+
+    expenses.forEach(e => {
+      const payerId = String(e.payer);
+      if (bal[payerId] !== undefined) bal[payerId] += e.cents;
+      
+      const n = e.split.length;
+      if (n > 0) {
+        const share = Math.floor(e.cents / n);
+        const remainder = e.cents - share * n;
+        
+        e.split.forEach((sid, idx) => {
+          const splitId = String(sid);
+          if (bal[splitId] !== undefined) {
+            bal[splitId] -= share + (idx < remainder ? 1 : 0);
+          }
+        });
+      }
+    });
+
+    const totalCents = expenses.reduce((a, e) => a + e.cents, 0);
+    const groupCurrency = activeGroup.currency;
+    const formattedTotal = getMoneyFormatter(groupCurrency).format(totalCents / 100);
+    
+    $('totals').innerHTML = `
+      <div class="stat"><div class="k">Total gastado</div><div class="v">${formattedTotal}</div></div>
+      <div class="stat"><div class="k">Participantes</div><div class="v">${parts.length}</div></div>
+    `;
+
+    const used = {};
+    const units = [];
+    activeGroup.couples.forEach(c => {
+      const id0 = String(c[0]);
+      const id1 = String(c[1]);
+      if (activeGroup.participants[id0] && activeGroup.participants[id1]) {
+        units.push({
+          ids: [id0, id1],
+          bal: (bal[id0] || 0) + (bal[id1] || 0)
+        });
+        used[id0] = used[id1] = true;
+      }
+    });
+    parts.forEach(p => {
+      const pid = String(p.id);
+      if (!used[pid]) {
+        units.push({
+          ids: [pid],
+          bal: bal[pid] || 0
+        });
+      }
+    });
+
+    const maxAbs = Math.max(1, ...units.map(u => Math.abs(u.bal)));
+    
+    $('balancesList').innerHTML = units.slice().sort((a,b) => b.bal - a.bal).map(u => {
+      const v = u.bal, pct = Math.abs(v) / maxAbs * 50;
+      const cls = v > 0 ? 'pos' : (v < 0 ? 'neg' : 'zero');
+      const fill = v >= 0 
+        ? `<div class="bal-fill" style="left:50%; width:${pct}%; background:var(--credit-soft)"></div>`
+        : `<div class="bal-fill" style="right:50%; width:${pct}%; background:var(--owe-soft)"></div>`;
+      
+      const txt = v > 0 
+        ? '+' + getMoneyFormatter(groupCurrency).format(v / 100)
+        : (v < 0 ? '−' + getMoneyFormatter(groupCurrency).format(-v / 100) : 'a mano');
+
+      const label = u.ids.map(pid => firstName(pid)).join(' & ');
+      const avatarColor = colorFor(u.ids[0]);
+
+      return `
+        <div class="bal-row">
+          <div class="bal-name">
+            <span class="avatar" style="background:${avatarColor}">${initials(activeGroup.participants[u.ids[0]].name)}</span>
+            ${esc(label)}
+          </div>
+          <div class="bal-track">
+            <div class="bal-mid"></div>
+            ${fill}
+          </div>
+          <div class="bal-amt ${cls}">${txt}</div>
+        </div>
+      `;
+    }).join('');
+
+    const creds = units.filter(u => u.bal > 0).map(u => ({ ids: u.ids, rem: u.bal }));
+    const debs = units.filter(u => u.bal < 0).map(u => ({ ids: u.ids, rem: -u.bal }));
+    const moves = [];
+
+    const getPayerTarget = (ids) => {
+      for (let i = 0; i < ids.length; i++) {
+        const p = activeGroup.participants[String(ids[i])];
+        if (p && p.paysTo) return String(p.paysTo);
+      }
+      return null;
+    };
+    const crByMember = (pid) => creds.find(c => c.rem > 0 && c.ids.map(String).includes(String(pid)));
+
+    debs.forEach(d => {
+      const target = getPayerTarget(d.ids);
+      if (target) {
+        const c = crByMember(target);
+        if (c) {
+          const x = Math.min(d.rem, c.rem);
+          if (x > 0) {
+            moves.push({ from: d.ids, to: c.ids, cents: x });
+            d.rem -= x;
+            c.rem -= x;
+          }
+        }
+      }
+    });
+
+    const remainingDebs = debs.filter(d => d.rem > 0).sort((a,b) => b.rem - a.rem);
+    remainingDebs.forEach(d => {
+      let loopLimit = 0;
+      while (d.rem > 0 && loopLimit++ < 50) {
+        const av = creds.filter(c => c.rem > 0);
+        if (!av.length) break;
+
+        const fit = av.filter(c => c.rem >= d.rem).sort((a,b) => a.rem - b.rem)[0];
+        const c = fit || av.sort((a,b) => b.rem - a.rem)[0];
+
+        const x = Math.min(d.rem, c.rem);
+        moves.push({ from: d.ids, to: c.ids, cents: x });
+        d.rem -= x;
+        c.rem -= x;
+      }
+    });
+
+    const getUnitAlias = (ids) => ids.map(id => activeGroup.participants[String(id)]?.alias?.trim() || '').filter(Boolean).join('  ·  ');
+    
+    if (!moves.length) {
+      $('settlementList').innerHTML = '<div class="settled-note"><span class="big">¡Están todos a mano!</span>No se deben nada.</div>';
+      $('movesNote').textContent = '';
+      return;
+    }
+
+    const roundValue = (activeGroup.rules && activeGroup.rules.roundValue) || "1";
+    const roundDirection = (activeGroup.rules && activeGroup.rules.roundDirection) || "nearest";
+    const activeMoves = moves.filter(m => roundUnits(m.cents, roundValue, roundDirection) > 0);
+
+    if (!activeMoves.length) {
+      $('settlementList').innerHTML = '<div class="settled-note"><span class="big">¡Están todos a mano!</span>(Por redondeo, no hay transferencias sugeridas).</div>';
+      $('movesNote').textContent = '';
+      return;
+    }
+
+    $('movesNote').textContent = `Con ${activeMoves.length} ${activeMoves.length === 1 ? 'transferencia' : 'transferencias'} queda todo saldado.`;
+    
+    $('settlementList').innerHTML = activeMoves.map(m => {
+      const fromLabel = m.from.map(firstName).join(' & ');
+      const toLabel = m.to.map(firstName).join(' & ');
+      const roundedCents = roundUnits(m.cents, roundValue, roundDirection);
+      const formattedSum = getMoneyFormatter(groupCurrency).format(roundedCents / 100);
+
+      const fromAlias = getUnitAlias(m.from);
+      const toAlias = getUnitAlias(m.to);
+
+      return `
+        <div class="pay">
+          <div class="who">
+            <span class="avatar" style="background:${colorFor(m.from[0])}">${initials(activeGroup.participants[m.from[0]].name)}</span>
+            <span class="who-txt">
+              <span class="nm">${esc(fromLabel)}</span>
+              ${fromAlias ? `<span class="alias">${esc(fromAlias)}</span>` : ''}
+            </span>
+          </div>
+          <span class="arrow">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </span>
+          <div class="who">
+            <span class="avatar" style="background:${colorFor(m.to[0])}">${initials(activeGroup.participants[m.to[0]].name)}</span>
+            <span class="who-txt">
+              <span class="nm">${esc(toLabel)}</span>
+              ${toAlias ? `<span class="alias" style="color:var(--primary-deep); font-weight:600;">${esc(toAlias)}</span>` : ''}
+            </span>
+          </div>
+          <span class="sum">${formattedSum}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function getTransactionDate(e) {
+    if (!e || !e.createdAt) return new Date();
+    if (typeof e.createdAt.toDate === 'function') {
+      return e.createdAt.toDate();
+    }
+    if (e.createdAt.seconds) {
+      return new Date(e.createdAt.seconds * 1000);
+    }
+    return new Date(e.createdAt);
+  }
+
+  function generateAndRenderReports() {
+    if (!activeGroup) return;
+    const parts = Object.values(activeGroup.participants || {});
+    const groupCurrency = activeGroup.currency;
+
+    const dateFromVal = $('reportDateFrom').value;
+    const dateToVal = $('reportDateTo').value;
+
+    let filtered = expenses.slice();
+    if (dateFromVal) {
+      const fromDate = new Date(dateFromVal + 'T00:00:00');
+      filtered = filtered.filter(e => getTransactionDate(e) >= fromDate);
+    }
+    if (dateToVal) {
+      const toDate = new Date(dateToVal + 'T23:59:59');
+      filtered = filtered.filter(e => getTransactionDate(e) <= toDate);
+    }
+
+    // 1. Category Summary (only expenses)
+    const filteredExpensesOnly = filtered.filter(e => e.isPayment !== true);
+    const totalExpenseCents = filteredExpensesOnly.reduce((sum, e) => sum + e.cents, 0);
+
+    const CATEGORIES = [
+      { id: 'Alojamiento', name: '🏠 Alojamiento' },
+      { id: 'Comida', name: '🍔 Comida' },
+      { id: 'Supermercado', name: '🛒 Supermercado' },
+      { id: 'Transporte', name: '🚗 Transporte' },
+      { id: 'Entretenimiento', name: '🎟️ Entretenimiento' },
+      { id: 'Compras', name: '🛍️ Compras' },
+      { id: 'Regalos', name: '🎁 Regalos' },
+      { id: 'Otros', name: '❓ Otros' }
+    ];
+
+    const catTotals = {};
+    CATEGORIES.forEach(c => { catTotals[c.id] = 0; });
+    filteredExpensesOnly.forEach(e => {
+      const cat = e.category || 'Otros';
+      if (catTotals[cat] === undefined) {
+        catTotals[cat] = 0;
+      }
+      catTotals[cat] += e.cents;
+    });
+
+    const categorySummaryDiv = $('reportCategorySummary');
+    if (totalExpenseCents === 0) {
+      categorySummaryDiv.innerHTML = '<p class="empty" style="text-align:center;">No hay gastos registrados en este período.</p>';
+    } else {
+      const sortedCats = Object.keys(catTotals)
+        .map(key => {
+          const catObj = CATEGORIES.find(c => c.id === key) || { name: key };
+          return { id: key, name: catObj.name, cents: catTotals[key] };
+        })
+        .sort((a, b) => b.cents - a.cents);
+
+      categorySummaryDiv.innerHTML = sortedCats.map(c => {
+        if (c.cents === 0) return '';
+        const pct = totalExpenseCents > 0 ? (c.cents / totalExpenseCents * 100).toFixed(1) : 0;
+        const formattedAmount = getMoneyFormatter(groupCurrency).format(c.cents / 100);
+        return `
+          <div style="margin-bottom: 8px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:0.9rem;">
+              <span><b>${esc(c.name)}</b></span>
+              <span>${formattedAmount} (${pct}%)</span>
+            </div>
+            <div style="background:var(--bg-input); border-radius:4px; height:8px; width:100%; overflow:hidden; position:relative;">
+              <div style="background:var(--primary); height:100%; width:${pct}%;"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // 2. Participant Flows & Range Balances
+    const rangeBal = {};
+    const totalAportado = {};
+    const totalPagado = {};
+    const totalRecibido = {};
+
+    parts.forEach(p => {
+      const pid = String(p.id);
+      rangeBal[pid] = 0;
+      totalAportado[pid] = 0;
+      totalPagado[pid] = 0;
+      totalRecibido[pid] = 0;
+    });
+
+    filtered.forEach(e => {
+      const payerId = String(e.payer);
+      if (e.isPayment === true) {
+        const receiverId = String(e.split[0]);
+        if (rangeBal[payerId] !== undefined) rangeBal[payerId] += e.cents;
+        if (rangeBal[receiverId] !== undefined) rangeBal[receiverId] -= e.cents;
+
+        if (totalPagado[payerId] !== undefined) totalPagado[payerId] += e.cents;
+        if (totalRecibido[receiverId] !== undefined) totalRecibido[receiverId] += e.cents;
+      } else {
+        if (rangeBal[payerId] !== undefined) rangeBal[payerId] += e.cents;
+        if (totalAportado[payerId] !== undefined) totalAportado[payerId] += e.cents;
+
+        const n = e.split.length;
+        if (n > 0) {
+          const share = Math.floor(e.cents / n);
+          const remainder = e.cents - share * n;
+          e.split.forEach((sid, idx) => {
+            const splitId = String(sid);
+            if (rangeBal[splitId] !== undefined) {
+              rangeBal[splitId] -= (share + (idx < remainder ? 1 : 0));
+            }
+          });
+        }
+      }
+    });
+
+    const participantFlowList = $('reportParticipantFlowList');
+    participantFlowList.innerHTML = parts.map(p => {
+      const pid = String(p.id);
+      const gast = totalAportado[pid] || 0;
+      const pag = totalPagado[pid] || 0;
+      const rec = totalRecibido[pid] || 0;
+      const net = rangeBal[pid] || 0;
+
+      const fmtGast = getMoneyFormatter(groupCurrency).format(gast / 100);
+      const fmtPag = getMoneyFormatter(groupCurrency).format(pag / 100);
+      const fmtRec = getMoneyFormatter(groupCurrency).format(rec / 100);
+      
+      const netCls = net > 0 ? 'pos' : (net < 0 ? 'neg' : 'zero');
+      const netSign = net > 0 ? '+' : '';
+      const fmtNet = netSign + getMoneyFormatter(groupCurrency).format(net / 100);
+
+      return `
+        <tr>
+          <td style="padding: 8px 4px; font-weight:600;">${esc(p.name)}</td>
+          <td style="padding: 8px 4px; text-align:right;">${fmtGast}</td>
+          <td style="padding: 8px 4px; text-align:right;">${fmtPag}</td>
+          <td style="padding: 8px 4px; text-align:right;">${fmtRec}</td>
+          <td style="padding: 8px 4px; text-align:right; font-weight:bold;" class="${netCls}">${fmtNet}</td>
+        </tr>
+      `;
+    }).join('');
+
+    // 3. WhatsApp Settlement Summary (using range Balances and couples settings)
+    const rangeUsed = {};
+    const rangeUnits = [];
+    activeGroup.couples.forEach(c => {
+      const id0 = String(c[0]);
+      const id1 = String(c[1]);
+      if (activeGroup.participants[id0] && activeGroup.participants[id1]) {
+        rangeUnits.push({
+          ids: [id0, id1],
+          bal: (rangeBal[id0] || 0) + (rangeBal[id1] || 0)
+        });
+        rangeUsed[id0] = rangeUsed[id1] = true;
+      }
+    });
+    parts.forEach(p => {
+      const pid = String(p.id);
+      if (!rangeUsed[pid]) {
+        rangeUnits.push({
+          ids: [pid],
+          bal: rangeBal[pid] || 0
+        });
+      }
+    });
+
+    const rangeCreds = rangeUnits.filter(u => u.bal > 0).map(u => ({ ids: u.ids, rem: u.bal }));
+    const rangeDebs = rangeUnits.filter(u => u.bal < 0).map(u => ({ ids: u.ids, rem: -u.bal }));
+    const rangeMoves = [];
+
+    const getPayerTarget = (ids) => {
+      for (let i = 0; i < ids.length; i++) {
+        const p = activeGroup.participants[String(ids[i])];
+        if (p && p.paysTo) return String(p.paysTo);
+      }
+      return null;
+    };
+    const crByMember = (pid) => rangeCreds.find(c => c.rem > 0 && c.ids.map(String).includes(String(pid)));
+
+    rangeDebs.forEach(d => {
+      const target = getPayerTarget(d.ids);
+      if (target) {
+        const c = crByMember(target);
+        if (c) {
+          const x = Math.min(d.rem, c.rem);
+          if (x > 0) {
+            rangeMoves.push({ from: d.ids, to: c.ids, cents: x });
+            d.rem -= x;
+            c.rem -= x;
+          }
+        }
+      }
+    });
+
+    const remainingRangeDebs = rangeDebs.filter(d => d.rem > 0).sort((a,b) => b.rem - a.rem);
+    remainingRangeDebs.forEach(d => {
+      let loopLimit = 0;
+      while (d.rem > 0 && loopLimit++ < 50) {
+        const av = rangeCreds.filter(c => c.rem > 0);
+        if (!av.length) break;
+
+        const fit = av.filter(c => c.rem >= d.rem).sort((a,b) => a.rem - b.rem)[0];
+        const c = fit || av.sort((a,b) => b.rem - a.rem)[0];
+
+        const x = Math.min(d.rem, c.rem);
+        rangeMoves.push({ from: d.ids, to: c.ids, cents: x });
+        d.rem -= x;
+        c.rem -= x;
+      }
+    });
+
+    const roundValue = (activeGroup.rules && activeGroup.rules.roundValue) || "1";
+    const roundDirection = (activeGroup.rules && activeGroup.rules.roundDirection) || "nearest";
+
+    let reportText = `📊 Liquidación - ${activeGroup.name}\n`;
+    if (dateFromVal || dateToVal) {
+      reportText += `Periodo: ${dateFromVal || 'Inicio'} al ${dateToVal || 'Fin'}\n`;
+    }
+    reportText += `------------------------------------\n`;
+    
+    const activeRangeMoves = rangeMoves.filter(m => roundUnits(m.cents, roundValue, roundDirection) > 0);
+
+    if (!activeRangeMoves.length) {
+      reportText += `¡Todo saldado! No hay deudas pendientes.\n`;
+    } else {
+      reportText += `Transferencias sugeridas:\n\n`;
+      activeRangeMoves.forEach(m => {
+        const fromLabel = m.from.map(firstName).join(' & ');
+        const toLabel = m.to.map(firstName).join(' & ');
+        const roundedCents = roundUnits(m.cents, roundValue, roundDirection);
+        const formattedSum = getMoneyFormatter(groupCurrency).format(roundedCents / 100);
+        
+        const toAlias = m.to.map(id => activeGroup.participants[String(id)]?.alias?.trim() || '').filter(Boolean).join(' / ');
+        
+        reportText += `💸 ${fromLabel} ➔ ${toLabel}: ${formattedSum}\n`;
+        if (toAlias) {
+          reportText += `   Alias/CBU: ${toAlias}\n`;
+        }
+        reportText += `\n`;
+      });
+    }
+    reportText += `------------------------------------\n`;
+    reportText += `Generado por Repartijas App`;
+    
+    $('reportSettlementClipboardText').value = reportText;
+
+    // 4. Detailed Transaction Log Table
+    const transactionsLogList = $('reportTransactionsLogList');
+    const sortedFiltered = filtered.slice().sort((a, b) => getTransactionDate(b) - getTransactionDate(a));
+    if (!sortedFiltered.length) {
+      transactionsLogList.innerHTML = '<tr><td colspan="6" style="text-align:center;">No hay transacciones en este período.</td></tr>';
+    } else {
+      transactionsLogList.innerHTML = sortedFiltered.map(t => {
+        const dateStr = getTransactionDate(t).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' });
+        const typeStr = t.isPayment === true ? '💸 Pago' : '🛒 Gasto';
+        
+        let conceptStr = esc(t.desc);
+        if (t.isPayment !== true && t.category) {
+          const catIconObj = CATEGORIES.find(c => c.id === t.category);
+          conceptStr += ` <span style="font-size:0.75rem; color:var(--muted); background:var(--bg-input); padding:2px 6px; border-radius:4px; margin-left:4px;">${esc((catIconObj && catIconObj.name) || t.category)}</span>`;
+        }
+        
+        const payerName = firstName(t.payer);
+        const receiverOrSplitNames = t.isPayment === true 
+          ? firstName(t.split[0])
+          : (t.split.length === parts.length ? 'Todos' : t.split.map(firstName).join(', '));
+        
+        const formattedAmount = getMoneyFormatter(groupCurrency).format(t.cents / 100);
+        
+        return `
+          <tr>
+            <td style="padding: 8px 4px;">${dateStr}</td>
+            <td style="padding: 8px 4px; font-weight:600;">${typeStr}</td>
+            <td style="padding: 8px 4px;">${conceptStr}</td>
+            <td style="padding: 8px 4px;">${esc(payerName)}</td>
+            <td style="padding: 8px 4px; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${esc(receiverOrSplitNames)}</td>
+            <td style="padding: 8px 4px; text-align:right; font-weight:600;">${formattedAmount}</td>
+          </tr>
+        `;
       }).join('');
     }
   }
 
-  function renderAll(){ renderChips(); renderAliasPanel(); renderExpenseForm(); renderExpenseList(); renderPairs(); renderRules(); roundSel.value=String(state.roundG); renderResults(); save(); }
+  // --- ADMIN VIEW PANEL LOGIC ---
+  async function loadAdminPanel() {
+    if (!currentUser || currentUser.email !== 'nicolasescudero5@gmail.com') return;
 
-  // Eventos
-  $('addPersonBtn').addEventListener('click',addPerson);
-  nameInput.addEventListener('keydown',function(e){if(e.key==='Enter')addPerson();});
-  $('addExpenseBtn').addEventListener('click',addExpense);
-  expAmount.addEventListener('keydown',function(e){if(e.key==='Enter')addExpense();});
-  expDesc.addEventListener('keydown',function(e){if(e.key==='Enter')expAmount.focus();});
-  chips.addEventListener('click',function(e){var b=e.target.closest('[data-rm]');if(b)removePerson(parseInt(b.getAttribute('data-rm')));});
-  aliasPanel.addEventListener('input',function(e){var t=e.target.closest('[data-alias]');if(!t)return;var p=personById(parseInt(t.getAttribute('data-alias')));if(p)p.alias=t.value;save();renderResults();});
-  expList.addEventListener('click',function(e){var b=e.target.closest('[data-rmexp]');if(b)removeExpense(parseInt(b.getAttribute('data-rmexp')));});
-  splitGrid.addEventListener('change',updateSplitCount);
-  $('toggleAllBtn').addEventListener('click',function(){var all=getSelectedSplit().length===state.people.length;splitGrid.querySelectorAll('input').forEach(function(i){i.checked=!all;});updateSplitCount();});
-  $('addPairBtn').addEventListener('click',addPair);
-  pairList.addEventListener('click',function(e){var b=e.target.closest('[data-rmpair]');if(b)removePair(parseInt(b.getAttribute('data-rmpair')));});
-  $('addRuleBtn').addEventListener('click',addRule);
-  ruleP.addEventListener('change',function(){fillSelect(ruleT,parseInt(ruleP.value)||null,"…le paga a");});
-  ruleList.addEventListener('click',function(e){var b=e.target.closest('[data-rmrule]');if(b)removeRule(parseInt(b.getAttribute('data-rmrule')));});
-  roundSel.addEventListener('change',function(){state.roundG=parseInt(roundSel.value);renderResults();save();});
-  $('resetBtn').addEventListener('click',function(){if(confirm("¿Borrar todos los participantes, gastos, parejas y reglas?")){state={people:[],expenses:[],couples:[],roundG:100,seq:1};renderAll();}});
+    switchAdminTab('adminUsersTab');
+    
+    // Load Users
+    try {
+      const snap = await getDocs(collection(db, 'users'));
+      const uList = snap.docs.map(doc => doc.data());
+      const container = $('adminUsersList');
+      
+      if (!uList.length) {
+        container.innerHTML = '<tr><td colspan="5" style="text-align:center;">No hay usuarios registrados.</td></tr>';
+      } else {
+        container.innerHTML = uList.map(u => {
+          const premLabel = u.isPremium ? 'Premium' : 'Estándar';
+          const premBtnLabel = u.isPremium ? 'Quitar Premium' : 'Hacer Premium';
+          const premBtnClass = u.isPremium ? 'btn-danger' : '';
+          
+          return `
+            <tr>
+              <td><b>${esc(u.name)}</b></td>
+              <td>${esc(u.email)}</td>
+              <td><span style="font-weight:600; color:${u.isPremium ? '#b07c2a' : 'var(--ink-soft)'};">${premLabel}</span></td>
+              <td>
+                <button class="btn action-btn-sm ${premBtnClass} toggle-premium-btn" data-uid="${u.uid}" data-state="${u.isPremium || false}">
+                  ${premBtnLabel}
+                </button>
+              </td>
+              <td>
+                <button class="btn btn-soft action-btn-sm reset-pwd-btn" data-email="${u.email}">
+                  Reset Password
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join('');
 
-  load(); renderAll();
-})();
-</script>
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('Service Worker registrado con éxito:', reg.scope))
-      .catch(err => console.error('Error al registrar el Service Worker:', err));
+        // Wire Up events for Premium Toggles
+        container.querySelectorAll('.toggle-premium-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const uid = btn.getAttribute('data-uid');
+            const state = btn.getAttribute('data-state') === 'true';
+            try {
+              await updateDoc(doc(db, 'users', uid), { isPremium: !state });
+              toast('Estado premium actualizado');
+              loadAdminPanel();
+            } catch(e) {
+              toast('Error al actualizar premium: ' + e.message);
+            }
+          });
+        });
+
+        // Wire Up events for Reset Passwords
+        container.querySelectorAll('.reset-pwd-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const email = btn.getAttribute('data-email');
+            try {
+              await sendPasswordResetEmail(auth, email);
+              toast('Email de restablecimiento enviado a ' + email);
+            } catch(e) {
+              toast('Error al enviar email: ' + e.message);
+            }
+          });
+        });
+      }
+    } catch(err) {
+      toast('Error al cargar panel de usuarios: ' + err.message);
+    }
+
+    // Load Groups
+    try {
+      const snap = await getDocs(collection(db, 'groups'));
+      const gList = snap.docs.map(doc => doc.data());
+      const container = $('adminGroupsList');
+      
+      if (!gList.length) {
+        container.innerHTML = '<tr><td colspan="5" style="text-align:center;">No hay grupos creados.</td></tr>';
+      } else {
+        container.innerHTML = gList.map(g => {
+          const dateStr = g.createdAt ? new Date(g.createdAt.toDate()).toLocaleDateString('es-AR') : '-';
+          return `
+            <tr>
+              <td><span style="font-size:.78rem; font-family:monospace; color:var(--muted);">${g.id}</span></td>
+              <td><b>${esc(g.name)}</b></td>
+              <td>${g.currency}</td>
+              <td>${g.participants ? Object.keys(g.participants).length : 0} (${g.members ? g.members.length : 1} reg.)</td>
+              <td>${dateStr}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+    } catch(err) {
+      toast('Error al cargar panel de grupos: ' + err.message);
+    }
+  }
+
+  // --- SPLIT GRID SELECTION HELPERS AND EVENT LISTENERS ---
+  function getSelectedSplit() {
+    return Array.from($('splitGrid').querySelectorAll('input:checked')).map(i => i.value);
+  }
+
+  function updateSplitCount() {
+    if (!activeGroup) return;
+    const n = getSelectedSplit().length;
+    const t = Object.keys(activeGroup.participants || {}).length;
+    $('splitCount').textContent = (n === t && t > 0) ? "Todos" : (n === 0 ? "Nadie seleccionado" : `${n} de ${t}`);
+    $('toggleAllBtn').textContent = (n === t) ? "Ninguno" : "Todos";
+  }
+
+  // Bind split list selection events
+  $('splitGrid').addEventListener('change', (e) => {
+    if (e.target.closest('input')) {
+      updateSplitCount();
+    }
   });
-}
+
+  $('toggleAllBtn').addEventListener('click', () => {
+    if (!activeGroup) return;
+    const t = Object.keys(activeGroup.participants || {}).length;
+    const all = getSelectedSplit().length === t;
+    $('splitGrid').querySelectorAll('input').forEach(i => {
+      i.checked = !all;
+    });
+    updateSplitCount();
+  });
+
+  // Bind report tab event listeners
+  $('applyReportFiltersBtn').addEventListener('click', () => {
+    generateAndRenderReports();
+  });
+
+  $('clearReportFiltersBtn').addEventListener('click', () => {
+    $('reportDateFrom').value = '';
+    $('reportDateTo').value = '';
+    generateAndRenderReports();
+  });
+
+  $('copyReportToClipboardBtn').addEventListener('click', () => {
+    const text = $('reportSettlementClipboardText').value;
+    if (!text) return;
+    navigator.clipboard.writeText(text)
+      .then(() => toast('¡Informe copiado al portapapeles!'))
+      .catch(err => toast('Error al copiar: ' + err.message));
+  });
+
+  // Register Service Worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('Service Worker registrado:', reg.scope))
+        .catch(err => console.error('Error al registrar SW:', err));
+    });
+  }
 </script>
 </body>
 </html>

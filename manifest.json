@@ -1,7 +1,7 @@
 {
-  "name": "Repartija — dividir gastos sin vueltas",
-  "short_name": "Repartija",
-  "description": "Cargá quién puso plata y la app calcula la forma más simple de saldar todo.",
+  "name": "Repartijas — dividir gastos en grupo",
+  "short_name": "Repartijas",
+  "description": "Calculá el reparto de gastos grupales en múltiples monedas y sincronizá con tus amigos.",
   "start_url": "/repartija/",
   "display": "standalone",
   "background_color": "#EAF0EC",

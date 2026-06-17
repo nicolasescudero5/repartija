@@ -1,9 +1,10 @@
-const CACHE_NAME = 'repartija-v1';
+const CACHE_NAME = 'repartija-v2-v1';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './icon-512.png'
+  './icon-512.png',
+  './firebase-config.js'
 ];
 
 self.addEventListener('install', (e) => {
@@ -40,6 +41,19 @@ self.addEventListener('fetch', (e) => {
         }).catch(() => {});
         return cachedResponse;
       }
+      
+      // Cache Google Fonts or Firebase SDKs on the fly
+      const url = new URL(e.request.url);
+      if (url.origin.includes('gstatic.com') || url.origin.includes('googleapis.com')) {
+        return fetch(e.request).then((networkResponse) => {
+          if (networkResponse.status === 200) {
+            const cacheCopy = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(e.request, cacheCopy));
+          }
+          return networkResponse;
+        }).catch(() => caches.match(e.request));
+      }
+
       return fetch(e.request);
     })
   );
